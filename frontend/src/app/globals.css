@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-luxury-champagne: #F7E7CE;
+  --color-luxury-champagne-light: #FAF0E6;
+  --color-luxury-rose-gold: #B76E79;
+  --color-luxury-rose-gold-dark: #9C5560;
+  --color-luxury-warm-nude: #EAD7D1;
+  --color-luxury-deep-slate: #1E232A;
+  --color-luxury-charcoal: #121417;
+  --color-luxury-pearl: #FDFBF7;
+
+  --font-serif: var(--font-cormorant), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-montserrat), "Montserrat", sans-serif;
+}
+
+:root {
+  --background: #FDFBF7;
+  --foreground: #1E232A;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
