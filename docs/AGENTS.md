@@ -31,7 +31,41 @@
 4. Qwen: atomic commits only — 1 commit = 1 logical change, no WIP commits
 5. All agents: if you can delegate DML/CSS/CRUD to a single line, do it — don't explain
 
-## 4. Error Escalation
+## 4. Task Sizing & Dispatch Protocol (Context-Limited Models)
+
+### Model Constraints
+| Agent | Model | Context Limit | Failure Mode |
+|-------|-------|---------------|--------------|
+| @qwen | Qwen 2.5 Coder 14B (local) | ~32K token | Stuck on multi-file/multi-step tasks |
+| @gemini | Gemini Flash | rate-limited | 429 on large payloads |
+| @qa_testing | (varies) | - | - |
+
+### One Turn = One Unit Rule
+**Never dispatch ≥2 logical units in one turn.** One unit =:
+- 1 file write, OR
+- 1 migration, OR
+- 1 model/controller, OR
+- 1 component, OR
+- 1 bug fix
+
+### Dispatch Matrix (Who Gets What)
+| Payload Size | Queue To |
+|--------------|----------|
+| ≤1 file / small task | @qwen |
+| 2-5 files, related | Split: @qwen half, @gemini half |
+| ≥5 files / large synthesis | @hermes or @gemini leads, @qwen executes pieces |
+| UI/design components | @gemini → hands off to @qwen one at a time |
+| Backend logic | @hermes spec → @qwen implements one endpoint at a time |
+
+### Anti-Stuck Rules
+1. Spec must be FINAL before dispatch — no iterative refinement mid-task
+2. Never send full docs as input — reference file path only: "read `docs/ARCHITECTURE.md` §3, implement webhook controller"
+3. If @qwen silent 1 turn → re-dispatch with smaller unit
+4. If @qwen silent 2 turns → @hermes or @gemini takes over task
+5. @gemini input capped at 1 design spec per turn (avoid 429)
+6. Long content via file reference — write spec to file first, then mention path
+
+## 5. Error Escalation
 
 ```
 QA fails audit → @qwen fix locally → retry → if fails again → escalate to @hermes for design review

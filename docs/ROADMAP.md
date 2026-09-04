@@ -10,15 +10,15 @@
 
 ## Phase 1: Environment Setup & Scaffolding
 - [ ] Inisialisasi toolchain: PHP 8.3, Composer, Node 22 (@Qwen)
-- [ ] Scaffolding Next.js App Router di `/frontend` (@Qwen)
+- [x] Scaffolding Next.js App Router di `/frontend` (@Gemini)
 - [ ] Scaffolding Laravel API di `/backend` (@Qwen)
 - [ ] Setup linting, branch rule, dan repo connection (@Qa Testing)
 
 ## Phase 2: Design System & Company Profile (Frontend)
-- [ ] Setup token desain Tailwind (palet luxury champagne & rose gold) (@Gemini -> @Qwen)
-- [ ] Hero section, navigasi, dan galeri portofolio kategori responsive (@Gemini -> @Qwen)
-- [ ] Komponen slider Before/After interaktif (@Gemini -> @Qwen)
-- [ ] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget (@Gemini -> @Qwen)
+- [x] Setup token desain Tailwind (palet luxury champagne & rose gold) (@Gemini)
+- [x] Hero section, navigasi, dan galeri portofolio kategori responsive (@Gemini)
+- [x] Komponen slider Before/After interaktif (@Gemini)
+- [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget (@Gemini)
 - [ ] Audit responsivitas mobile & clean build check (@Qa Testing)
 
 ## Phase 3: Database, API Architecture & Gated Logic
