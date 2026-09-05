@@ -1,0 +1,4 @@
+# Workspace config tokens — JANGAN DI-COMMIT
+.workspace.env
+.secrets
+*.secret
