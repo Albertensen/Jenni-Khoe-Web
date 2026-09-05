@@ -85,3 +85,11 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 ### 2026-09-05 11:40 — Vercel deploy after Laravel scaffold
 - Frontend deployed: https://jenni-khoe-3rnybozb8-rebahan.vercel.app (200 OK)
 - Backend scaffold + composer install pushed to GitHub
+### 2026-09-05 11:43 — Phase 1 complete (all items)
+- docs/GIT_POLICY.md: branching (main/dev/feature), conventional commits
+- backend/pint.json: PHP Pint Laravel preset
+- frontend/.eslintrc.json: strict TS rules
+- frontend/.prettierrc: with tailwindcss plugin
+- frontend/tsconfig.json: strict mode
+- git branch `dev` created on remote
+- All Phase 1 items checked off in ROADMAP.md

@@ -14,8 +14,8 @@
 - [x] Inisialisasi toolchain: PHP 8.3, Composer, Node 22 (@Prime_Agent)
 - [x] Scaffolding Next.js App Router di `/frontend`
 - [x] Scaffolding Laravel API di `/backend` (@Prime_Agent)
-- [ ] Setup Git branching policy (`main`, `dev`, `feature/*`), commit convention, dan remote repo verification (@Prime_Agent)
-- [ ] Konfigurasi linting & formatting: ESLint, Prettier, TypeScript strict mode, PHP Pint (@Prime_Agent)
+- [x] Setup Git branching policy (`main`, `dev`, `feature/*`), commit convention, dan remote repo verification (@Prime_Agent)
+- [x] Konfigurasi linting & formatting: ESLint, Prettier, TypeScript strict mode, PHP Pint (@Prime_Agent)
 
 ---
 
