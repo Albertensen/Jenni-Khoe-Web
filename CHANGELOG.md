@@ -127,3 +127,11 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - InquiryController (Laravel): POST /api/inquiries with throttle:5,1 + validation
 - Inquiry model + migration (inquiries table)
 - All 5 Phase 4 items checked
+### 2026-09-05 12:40 — Phase 5: Database Architecture, State Machine & Gated Route
+- BookingStateMachine service: full state transition validation (8 states, 16 transitions)
+- GatedRouteService: cryptographic 64-char token generator with 48h TTL, one-time use
+- GatedToken model + migration: booking_id, token (UNIQUE), expires_at, used_at
+- GatedRouteController: GET /g/{token} consumes one-time token, returns booking with relations
+- Booking model: added gatedTokens() + client() relations
+- DATABASE_AUDIT.md: schema audit, FK validation, transition matrix, sanitization policy
+- ROADMAP Phase 5: 4/4 complete

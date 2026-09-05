@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\GatedToken;
 
 class Booking extends Model
 {
@@ -48,6 +49,16 @@ class Booking extends Model
     public function schedules()
     {
         return $this->hasMany(Schedule::class);
+    }
+
+    public function gatedTokens()
+    {
+        return \$this->hasMany(GatedToken::class);
+    }
+
+    public function client()
+    {
+        return \$this->belongsTo(Client::class);
     }
 
     public function logs()

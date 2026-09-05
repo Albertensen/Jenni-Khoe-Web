@@ -60,10 +60,10 @@
 ---
 
 ### Phase 5: Database Architecture, Gated Logic & Closing Engine
-- [ ] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
-- [ ] **State Machine Enforcement:** Validasi transisi status booking di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Gated Route Cryptographic Generator:** Pembuatan token URL sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24â€“48 jam (@Prime_Agent -> @Qwen_Worker)
-- [ ] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
+- [x] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
+- [x] **State Machine Enforcement:** BookingStateMachine service di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
+- [x] **Gated Route Cryptographic Generator:** GatedToken model + GatedRouteService + controller sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24â€“48 jam (@Prime_Agent -> @Qwen_Worker)
+- [x] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
 
 #### Detail Skema Database (MySQL 8)
 - **clients:** `id, name, email, phone, instagram_handle, wedding_date, created_at`
