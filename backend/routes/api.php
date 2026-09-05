@@ -1,0 +1,13 @@
+<?php
+
+use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\InquiryController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/available-dates', [BookingController::class, 'availableDates']);
+
+Route::apiResource('clients', ClientController::class);
+Route::apiResource('bookings', BookingController::class)->except(['edit', 'create']);
+Route::post('/inquiries', [InquiryController::class, 'store']);
+Route::get('/inquiries', [InquiryController::class, 'index'])->middleware('auth:sanctum');
