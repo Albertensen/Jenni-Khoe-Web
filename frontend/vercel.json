@@ -1,8 +1,5 @@
 {
-  "project": "jenni-khoe-mua",
-  "settings": {
-    "framework": "nextjs",
-    "buildCommand": "next build",
-    "outputDirectory": ".next"
-  }
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs"
 }
