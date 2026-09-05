@@ -1,92 +1,99 @@
-# Project Roadmap: Jenni Khoe MUA - Web Profile & Gated Booking System
+# Master Roadmap: Jenni Khoe MUA - Luxury Portfolio & Autonomous Booking Engine
 
-## Target Repositori & Environment
-- Remote: https://github.com/Albertensen/Jenni-Khoe-Web.git
-- Frontend: Next.js (App Router), Tailwind CSS (Champagne/Rose Gold Theme) -> Vercel
-- Backend: Laravel API, MySQL, Laravel Socialite -> Webhook & API Handler
-- Integrations: Midtrans/Xendit (HMAC verification), Google Calendar API, WhatsApp Notification
+## Modern Tech Stack & Architecture (2026 Standard)
+- **Frontend:** Next.js 15 (App Router, Server Actions), React 19, Tailwind CSS v4, Framer Motion, Lenis Smooth Scroll
+- **Visual & Canvas Engine:** Canvas Texture Magnifier (Ultra-HD micro-zoom), Smooth Image Comparison Slider
+- **Backend API & Data:** Laravel 11 API (PHP 8.3), MySQL 8, Redis (Queue & Webhook Processing)
+- **Storage & Media:** Cloudinary / Supabase Storage (Auto-format WebP/AVIF, Blurhash generation)
+- **Payments & Integrations:** Midtrans / Xendit Core API (Snap, QRIS Realtime, Virtual Account with HMAC-SHA256), Google Calendar API (FreeBusy sync), WhatsApp Business Gateway
+- **Infrastructure & CI/CD:** Vercel (Frontend), VPS / Cloud Server (Backend & Workers), GitHub Actions
 
 ---
 
-## Phase 1: Environment Setup & Scaffolding
-- [ ] Inisialisasi toolchain: PHP 8.3, Composer, Node 22 (@Qwen)
-- [x] Scaffolding Next.js App Router di `/frontend` (@Gemini)
-- [ ] Scaffolding Laravel API di `/backend` (@Qwen)
-- [ ] Setup linting, branch rule, dan repo connection (@Qa Testing)
+### Phase 1: Toolchain, Repository Governance & Monorepo Setup
+- [ ] Inisialisasi toolchain: PHP 8.3, Composer, Node 22 (@Qwen_Worker)
+- [x] Scaffolding Next.js App Router di `/frontend`
+- [ ] Scaffolding Laravel API di `/backend` (@Qwen_Worker)
+- [ ] Setup Git branching policy (`main`, `dev`, `feature/*`), commit convention, dan remote repo verification (@Prime_Agent)
+- [ ] Konfigurasi linting & formatting: ESLint, Prettier, TypeScript strict mode, PHP Pint (@Prime_Agent)
 
-## Phase 2: Design System & Company Profile (Frontend)
-- [x] Setup token desain Tailwind (palet luxury champagne & rose gold) (@Gemini)
-- [x] Hero section, navigasi, dan galeri portofolio kategori responsive (@Gemini)
-- [x] Komponen slider Before/After interaktif (@Gemini)
-- [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget (@Gemini)
-- [ ] Audit responsivitas mobile & clean build check (@Qa Testing)
+---
 
-## Phase 3: Database, API Architecture & Gated Logic
-- [ ] Migrasi tabel database MySQL: Clients, Bookings, Quotes, Payments, Logs (@Hermes -> @Qwen)
-- [ ] State Machine logic: Inquiry -> Nego -> Approved -> Paid -> Confirmed (@Hermes -> @Qwen)
-- [ ] Proteksi halaman & token rute: Gated Pricelist & Invoice Generator (@Hermes -> @Qwen)
-- [ ] Audit integrasi endpoint & validasi keamanan request (@Qa Testing)
+### Phase 2: Brand Identity, Design Tokens & Luxury Visual System
+- [x] Setup token desain Tailwind (palet luxury champagne, rose gold, warm nude, deep charcoal)
+- [ ] Standardisasi tipografi: Editorial Display Serif (Cormorant Garamond / Cinzel) dipadukan dengan Plus Jakarta Sans (@Prime_Agent -> @Qwen_Worker)
+- [ ] Integrasi Lenis Smooth Scroll untuk interaksi scroll editorial (@Prime_Agent -> @Qwen_Worker)
+- [ ] Pembuatan komponen UI atomik: Button glassmorphism, floating label inputs, dialog modals, toast alerts (@Prime_Agent -> @Qwen_Worker)
+- [ ] Transisi halaman Framer Motion: Layout fade, image stagger, dan subtle text reveals (@Prime_Agent -> @Qwen_Worker)
 
-### Phase 3 Detail — Skema Database (spec @Hermes)
+---
 
-Tabel yang wajib ada di migrasi MySQL:
+### Phase 3: High-End Interactive Portfolio & Visual Proof
+- [x] Hero section, navigasi responsif, dan galeri portofolio kategori
+- [x] Komponen slider Before/After interaktif
+- [ ] **Ultra-HD Texture Loupe (Magnifier):** Fitur inspeksi mikro tekstur kulit wajah pada galeri portofolio untuk membuktikan riasan *flawless* tanpa efek *cakey* (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Multidimensional Lookbook Matrix:** Filter portofolio dinamis berdasarkan *Skin Undertone* (Warm, Neutral, Cool) dan *Venue Lighting* (Indoor Ballroom Chandelier vs Outdoor Sunset) (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Slider Before/After 2.0:** Dual-lighting toggle (*Studio Flash* vs *Natural Sunlight*) dengan pembatas *metallic gold bar* (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Social Proof & Bride Stories:** Carousel video reels vertikal dan review testimoni pengantin (@Prime_Agent -> @Qwen_Worker)
+- [ ] Audit responsivitas mobile & optimasi aset WebP/AVIF (@Prime_Agent)
 
-- **clients** — data dasar klien: `id, name, email, phone, instagram_handle, wedding_date, created_at`
-- **bookings** — core state machine: `id, client_id, service_package, event_date, venue, guest_count, status ENUM('inquiry','negotiation','approved','down_payment','paid','confirmed','cancelled'), total_amount, dp_amount (50%), notes, created_at, updated_at`
-- **quotations** — riwayat penawaran: `id, booking_id, quote_number, items (JSON), subtotal, tax, grand_total, valid_until, status('sent','accepted','expired'), pdf_path`
-- **payments** — transaksi & verifikasi: `id, booking_id, payment_method('QRIS','VA','transfer'), transaction_id (3rd party, UNIQUE), amount, fee, status('pending','settled','failed','refund'), paid_at, xendit_charge_id, raw_webhook (JSON)`
-- **schedules** — slot kalender: `id, booking_id, start_datetime, end_datetime, google_event_id, google_event_link, synced_at`
-- **logs** — audit trail mutasi status booking & webhook receipt (booking_id, event, payload JSON, created_at)
+---
 
-State machine flow (transisi wajib tervalidasi di service layer, bukan cuma UI):
+### Phase 4: Lead Intake, Date Verification & Live CS
+- [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget
+- [ ] **Public Date Availability Calendar:** Tampilan visual kalender untuk slot *available*, *booked*, dan *on hold* (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Smart WhatsApp Payload Dispatcher:** Form submit memicu WhatsApp dengan pesan terstruktur otomatis berisi rincian tanggal, lokasi, dan paket riasan impian (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Inquiry API Endpoint (`POST /api/inquiries`):** Sanitasi data, rate limiter (`throttle:5,1`), dan pencatatan otomatis ke tabel database (@Prime_Agent -> @Qwen_Worker)
 
-```
-inquiry ──[client submit form]──> negotiation ──[admin approve + send quote]──> approved
-approved ──[client pay DP >= 50%]──> down_payment ──[client lunas]──> paid
-down_payment / paid ──[admin confirm schedule]──> confirmed ──[sync Google Calendar]
-any ──[admin or client cancel]──> cancelled
-```
+---
 
-Gated API logic: endpoint `GET /api/pricelist` dan `POST /api/payments/create-link` return **403** jika `booking.status != 'approved'`. Akses pricelist & invoice di frontend memakai signed token per-booking (token route), bukan session publik.
+### Phase 5: Database Architecture, Gated Logic & Closing Engine
+- [ ] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
+- [ ] **State Machine Enforcement:** Validasi transisi status booking di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Gated Route Cryptographic Generator:** Pembuatan token URL sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24–48 jam (@Prime_Agent -> @Qwen_Worker)
+- [ ] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
 
-## Phase 4: Integrasi Payment Gateway & Auto-Sync Kalender
-- [ ] Integrasi Midtrans/Xendit Snap & Core API (QRIS, VA) (@Hermes -> @Qwen)
-- [ ] Webhook endpoint handler dengan verifikasi keamanan HMAC (@Hermes -> @Qwen)
-- [ ] Integrasi Google Calendar API (auto-lock slot event pasca-bayar) (@Hermes -> @Qwen)
-- [ ] Notifikasi status booking via WhatsApp Gateway (@Qwen)
-- [ ] Audit idempotency webhook & simulasi payment sandbox (@Qa Testing)
+#### Detail Skema Database (MySQL 8)
+- **clients:** `id, name, email, phone, instagram_handle, wedding_date, created_at`
+- **bookings:** `id, client_id, service_package, event_date, venue, guest_count, status ENUM('inquiry','negotiation','approved','hold_expired','down_payment','paid','confirmed','cancelled'), total_amount, dp_amount, hold_expires_at, notes, created_at, updated_at`
+- **quotations:** `id, booking_id, quote_number, base_items (JSON), selected_addons (JSON), subtotal, discount, grand_total, dp_required, valid_until, status ENUM('draft','sent','accepted','expired'), pdf_path, created_at`
+- **contracts:** `id, booking_id, quotation_id, spk_number, terms_content (LONGTEXT), client_signature_data (LONGTEXT/BASE64), client_signature_path, signed_ip, signed_at, pdf_path, created_at`
+- **payments:** `id, booking_id, payment_method ENUM('QRIS','VA','credit_card'), transaction_id (UNIQUE), amount, fee, status ENUM('pending','settled','failed','expired','refund'), paid_at, xendit_charge_id, raw_webhook (JSON), created_at`
+- **schedules:** `id, booking_id, start_datetime, end_datetime, google_event_id, google_event_link, synced_at`
+- **logs:** `id, booking_id, event, payload (JSON), actor, created_at`
 
-### Phase 4 Detail — Webhook & Calendar (spec @Hermes)
+---
 
-Webhook handler (endpoint `POST /api/webhooks/xendit`):
-- Verifikasi signature: `HMAC_SHA256(JSON body + callback_token)` dibandingkan dengan header `x-callback-token`; request dengan signature tidak valid ditolak **401** sebelum masuk logic.
-- Idempotency: `xendit_charge_id` dipetakan ke `payments.transaction_id` dengan constraint UNIQUE — duplicate delivery di-drop, tidak mutasi ulang.
-- Alur mutasi: `payment.pending -> settled -> booking.status = paid -> schedule.sync = queued`.
-- Simpan `raw_webhook` (JSON) ke tabel `payments`/`logs` untuk forensik.
+### Phase 6: The Closing Portal (`/g/{token}`), E-Signature & Payment
+- [ ] **Urgency Countdown Banner:** Jam hitung mundur sisa waktu penahanan slot tanggal (misal: "23:59:00 sebelum slot dilepas ke calon pengantin lain") (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Dynamic Add-on Customizer (Real-time Calculator):** Checkbox interaktif untuk penambahan rias Ibu/Mertua, Bridesmaid, Extra Touch-Up Malam, dan Transport Luar Kota yang langsung memperbarui subtotal dan kalkulasi DP 50% secara instan (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Digital SPK Canvas (Surat Perjanjian Kerja):** Canvas tanda tangan digital interaktif via jari / stylus lengkap dengan klausul hukum sebelum pembayaran (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Automated PDF Engine:** Penggabungan invoice rincian add-on dan tanda tangan digital klien ke file PDF resmi ber-watermark (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Payment Gateway Integration:** Checkout terintegrasi QRIS instan dan Virtual Account via Midtrans / Xendit Snap & Core API (@Prime_Agent -> @Qwen_Worker)
 
-Integrasi Google Calendar (via Laravel Socialite OAuth2):
-- Admin consent sekali jalan, refresh token disimpan terenkripsi di DB.
-- Job queue `SyncCalendarBooking` triggered setelah `booking.status = paid`:
-  1. Query `schedules` + cek bentrok slot via Google **FreeBusy API**.
-  2. Buat `CalendarEvent` (judul, start/end, lokasi, deskripsi berisi info klien).
-  3. Simpan `google_event_id` + `google_event_link` ke `schedules`.
-  4. Kirim notifikasi konfirmasi via WhatsApp.
+---
 
-Notifikasi WhatsApp Gateway (status booking):
-- Trigger: submit inquiry (ke admin), quote dikirim (ke klien), DP diterima, lunas, jadwal terkunci, cancel.
-- Template teks per event dengan tombol link (cek pricelist / bayar / konfirmasi jadwal).
+### Phase 7: Automation Engine, Calendar Sync & Admin Center
+- [ ] **HMAC-SHA256 Webhook Receiver (`POST /api/webhooks/payment`):** Verifikasi signature callback dari payment gateway dan proteksi idempotency anti-duplicate delivery (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Scheduled Task / Cron Laravel:** Pemeriksaan berkala tiap menit untuk otomatis mengubah status booking yang kedaluwarsa menjadi `hold_expired` (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Google Calendar Bi-Directional Sync:** Cek bentrok via FreeBusy API dan auto-create event saat status booking masuk ke `down_payment` atau `paid` (@Prime_Agent -> @Qwen_Worker)
+- [ ] **WhatsApp Automated Messenger:** Notifikasi konfirmasi otomatis terkirim beserta file PDF invoice dan jadwal resmi (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Admin Command Dashboard (`/admin`):** Kalender jadwal kerja terpadu, pipeline Kanban inquiry, dan tombol 1-Click "Approve & Generate Closing Link" (@Prime_Agent -> @Qwen_Worker)
+- [ ] Audit simulasi sandbox: Form -> Nego -> Approve -> Add-on -> SPK -> QRIS Bayar -> Calendar Lock (@Prime_Agent)
 
-## Phase 5: Admin Dashboard & Workflow Approval
-- [ ] UI Dashboard Admin: manajemen jadwal kalender & list inquiry klien (@Gemini -> @Qwen)
-- [ ] Tombol aksi 1-Click: "Approve Schedule & Send Quotation" (@Hermes -> @Qwen)
-- [ ] Audit alur end-to-end booking dari cek tanggal sampai terbayar (@Qa Testing)
+---
 
-Detail interface (@Gemini):
-- Halaman admin login terpisah (route `/admin`) — tabel inquiry ber-status + calendar view slot booking (busy/free) yang sync dari `schedules`.
-- Tombol aksi 1-click "Approve Schedule & Send Quotation": sekali klik mutasi `negotiation -> approved`, generate PDF quotation, generate token pricelist, kirim ke klien via WhatsApp — semua dalam satu request (DB transaction + queue).
-- Halaman klien gated (`/g/{token}`): pricelist detail paket, invoice/penawaran harga, tombol "Bayar DP" (buka Snap/VA), progress status booking.
+### Phase 8: Hardening, SEO Performance & Production Launch
+- [ ] **Security Hardening:** Sanitasi payload canvas tanda tangan (mencegah XSS), rate-limiting API route publik (`throttle:10,1`), dan enkripsi token URL (@Prime_Agent)
+- [ ] **Performance & Asset Optimization:** Next.js bundle optimization, font subsetting, dan target skor Lighthouse Mobile > 90 (@Prime_Agent)
+- [ ] **Local SEO & Rich Snippets:** Implementasi Schema.org JSON-LD (LocalBusiness & Service) untuk ranking pencarian MUA (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Production Deployment:** Deployment frontend Next.js ke Vercel dan backend Laravel API ke hosting/server produksi (@Prime_Agent)
 
-## Phase 6: Final Hardening & Deployment
-- [ ] Security audit: sanitasi input form & rate-limiting API (@Qa Testing)
-- [ ] Optimasi bundle Next.js & asset gambar (Lighthouse Mobile > 90) (@Qa Testing)
-- [ ] Deploy production Frontend ke Vercel & setup webhook live (@Qa Testing)
+---
+
+INSTRUKSI EKSEKUSI SEKARANG:
+1. Simpan konten di atas ke path `C:\Users\Administrator\Documents\WEB MUA\docs\ROADMAP.md`.
+2. Verifikasi keutuhan berkas.
+3. Jalankan perintah Git berikut di terminal:
+   git add docs/ROADMAP.md && git commit -m "docs: establish comprehensive 8-phase master roadmap with luxury engine specs" && git push origin main
+4. Laporkan commit hash dan status push remote setelah selesai.
