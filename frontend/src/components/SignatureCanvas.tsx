@@ -92,7 +92,9 @@ export default function SignatureCanvas({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (sigData && onSave) onSave(sigData);
+    // Validate data URL — prevents XSS from manipulated canvas
+    const isValid = typeof sigData === 'string' && sigData.startsWith('data:image/png;base64,');
+    if (isValid && onSave) onSave(sigData);
   }, [sigData, onSave]);
 
   return (

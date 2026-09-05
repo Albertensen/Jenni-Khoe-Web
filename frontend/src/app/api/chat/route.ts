@@ -5,6 +5,7 @@ import { groq } from '@ai-sdk/groq';
 import { detectIntent } from '@/lib/chat/intent-detect';
 import { searchFAQ } from '@/data/faq';
 import { SYSTEM_PROMPT } from '@/lib/chat/system-prompt';
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama3-8b-8192';
 
@@ -12,6 +13,16 @@ export const runtime = 'edge';
 
 export async function POST(req: NextRequest) {
   try {
+// Rate limit: 10 req/60s per IP
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+  const rl = checkRateLimit("chat:" + ip, 10, 60);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(rl.reset) } }
+    );
+  }
+
     const body = await req.json();
     const msgs: Array<{ role: string; content: string }> = body?.messages ?? [];
 

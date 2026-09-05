@@ -9,6 +9,14 @@ class GatedRouteController extends Controller
 {
     public function show(string $token)
     {
+        // Validate token format — 64-char hex prevents injection
+        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token tidak valid.',
+            ], 404);
+        }
+        
         $booking = GatedRouteService::consume($token);
 
         if (!$booking) {
