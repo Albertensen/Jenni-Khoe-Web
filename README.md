@@ -1,5 +1,13 @@
 # Jenni Khoe MUA — Web Profile & Gated Booking System
 
+> **⚠️ WAJIB BACA SEBELUM KERJA:**
+> Buka [`CORE.md`](./CORE.md) untuk workspace info, remote, aturan, dan daftar dokumen governance.
+> Semua progress dicatat di [`CHANGELOG.md`](./CHANGELOG.md).
+
+---
+
+# Jenni Khoe MUA — Web Profile & Gated Booking System
+
 Official website and booking system for Jenni Khoe Makeup Artist (MUA).
 
 ## Architecture (Hybrid)
