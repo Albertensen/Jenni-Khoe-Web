@@ -2,45 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
-use App\Services\PaymentGatewayService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Payment;
 
 class PaymentController extends Controller
 {
-    public function createQris(Request $request, PaymentGatewayService $gateway)
+    public function index()
     {
-        $validator = Validator::make($request->all(), [
-            'booking_id' => 'required|exists:bookings,id',
-            'amount' => 'required|numeric|min:1000',
+        return response()->json([
+            'success' => true,
+            'data' => Payment::with('booking.client')->orderBy('id', 'desc')->get()->map(fn($p) => [
+                'id' => $p->id,
+                'booking_id' => $p->booking_id,
+                'client_name' => $p->booking?->client?->name ?? 'N/A',
+                'payment_method' => $p->payment_method,
+                'amount' => (float) $p->amount,
+                'status' => $p->status,
+                'paid_at' => $p->paid_at,
+                'transaction_id' => $p->transaction_id,
+            ]),
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        $booking = Booking::findOrFail($request->booking_id);
-        $result = $gateway->createQrisCharge($booking, $request->amount);
-
-        return response()->json($result);
-    }
-
-    public function createVa(Request $request, PaymentGatewayService $gateway)
-    {
-        $validator = Validator::make($request->all(), [
-            'booking_id' => 'required|exists:bookings,id',
-            'amount' => 'required|numeric|min:1000',
-            'bank' => 'nullable|string|in:BCA,BNI,BRI,MANDIRI,PERMATA',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-        }
-
-        $booking = Booking::findOrFail($request->booking_id);
-        $result = $gateway->createVaCharge($booking, $request->amount, $request->bank ?? 'BCA');
-
-        return response()->json($result);
     }
 }

@@ -1,79 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const MOCK_INQUIRIES = [
-  { id: 1, name: "Sarah Wijaya", whatsapp: "6281234567890", date: "2026-04-15", package: "Bridal Premium", status: "new", venue: "Hotel Mulia", created_at: "2026-02-20" },
-  { id: 2, name: "Dewi Lestari", whatsapp: "6281234567891", date: "2026-05-10", package: "Bridal Basic", status: "negotiation", venue: "Balai Kartini", created_at: "2026-02-18" },
-  { id: 3, name: "Rina Agustina", whatsapp: "6281234567892", date: "2026-03-28", package: "Graduation", status: "closed", venue: "Kampus UI", created_at: "2026-02-15" },
-  { id: 4, name: "Maya Sari", whatsapp: "6281234567893", date: "2026-06-01", package: "Bridesmaid", status: "new", venue: "Grand Ballroom", created_at: "2026-02-22" },
-];
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+interface Inquiry {
+  id: number; name: string; email: string; phone: string;
+  wedding_date: string; venue: string; service_package: string;
+  message: string; status: string; created_at: string;
+}
+
+type StatusKey = "all" | "new" | "negotiation" | "converted" | "lost";
+
+const STATUS_COLORS: Record<string, string> = {
+  new: "bg-blue-100 text-blue-700",
+  negotiation: "bg-amber-100 text-amber-700",
+  converted: "bg-green-100 text-green-700",
+  lost: "bg-gray-100 text-gray-500",
+};
 
 export default function AdminInquiries() {
-  const [filter, setFilter] = useState("all");
-  const filtered = filter === "all" ? MOCK_INQUIRIES : MOCK_INQUIRIES.filter((i) => i.status === filter);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [filter, setFilter] = useState<StatusKey>("all");
+  const [loading, setLoading] = useState(true);
 
-  const statusColors: Record<string, string> = {
-    new: "bg-blue-100 text-blue-700",
-    negotiation: "bg-amber-100 text-amber-700",
-    closed: "bg-green-100 text-green-700",
-  };
+  useEffect(() => {
+    fetch(BACKEND_URL + "/api/inquiries")
+      .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
+      .then((d) => { setInquiries(d.data || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filtered = filter === "all"
+    ? inquiries
+    : inquiries.filter((i) => i.status === filter);
+
+  if (loading) return <div className="p-8 text-gray-400">Memuat data...</div>;
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-serif text-luxury-charcoal font-medium">Inquiry & Lead Management</h2>
-        <p className="text-sm text-gray-500 mt-1">Pipeline dan kanban manajemen calon klien</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-serif text-luxury-charcoal font-medium">Inquiries</h2>
+          <p className="text-sm text-gray-500 mt-1">{inquiries.length} total inquiries</p>
+        </div>
+        <div className="flex gap-2">
+          {(["all", "new", "negotiation", "converted", "lost"] as StatusKey[]).map((s) => (
+            <button key={s} onClick={() => setFilter(s)}
+              className={`px-3 py-1.5 text-xs rounded-xl font-medium transition-colors cursor-pointer ${
+                filter === s
+                  ? "bg-luxury-rose-gold text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}>{s.charAt(0).toUpperCase() + s.slice(1)}</button>
+          ))}
+        </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {["all", "new", "negotiation", "closed"].map((s) => (
-          <button key={s} onClick={() => setFilter(s)}
-            className={`px-4 py-2 text-sm rounded-xl transition-colors cursor-pointer ${
-              filter === s ? "bg-luxury-rose-gold text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
-            }`}
-          >
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </button>
+      <div className="space-y-3">
+        {filtered.map((i) => (
+          <div key={i.id} className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-luxury-charcoal">{i.name}</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{i.email} • {i.phone}</p>
+              </div>
+              <span className={`px-2 py-1 rounded-lg text-xs font-medium ${STATUS_COLORS[i.status] || ""}`}>
+                {i.status}
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-600">
+              <div><span className="text-gray-400">Wedding:</span> {i.wedding_date}</div>
+              <div><span className="text-gray-400">Venue:</span> {i.venue || "-"}</div>
+              <div><span className="text-gray-400">Package:</span> {i.service_package}</div>
+              <div><span className="text-gray-400">Date:</span> {new Date(i.created_at).toLocaleDateString("id-ID")}</div>
+            </div>
+            {i.message && <p className="mt-3 text-sm text-gray-500 italic">"{i.message}"</p>}
+          </div>
         ))}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider bg-gray-50">
-              <th className="p-4">Nama</th>
-              <th className="p-4">WhatsApp</th>
-              <th className="p-4">Tanggal Acara</th>
-              <th className="p-4">Paket</th>
-              <th className="p-4">Venue</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((i) => (
-              <tr key={i.id} className="text-gray-700 hover:bg-gray-50">
-                <td className="p-4 font-medium">{i.name}</td>
-                <td className="p-4 text-xs">{i.whatsapp}</td>
-                <td className="p-4">{i.date}</td>
-                <td className="p-4">{i.package}</td>
-                <td className="p-4 text-xs">{i.venue}</td>
-                <td className="p-4">
-                  <span className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${statusColors[i.status] || ""}`}>
-                    {i.status}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <a href={`https://wa.me/${i.whatsapp}?text=Halo ${i.name}...`} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-luxury-rose-gold hover:underline">
-                    Chat WA
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {filtered.length === 0 && <p className="text-center text-gray-400 py-8">Tidak ada data.</p>}
       </div>
     </div>
   );

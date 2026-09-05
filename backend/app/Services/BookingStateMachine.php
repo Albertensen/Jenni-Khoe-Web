@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Services\GoogleCalendarService;
+use App\Services\WhatsAppNotificationService;
 use InvalidArgumentException;
 
 class BookingStateMachine
@@ -69,6 +71,49 @@ class BookingStateMachine
             'payload' => json_encode(['note' => $note, 'previous_status' => $oldStatus]),
             'actor' => 'system',
         ]);
+
+        // Auto-trigger side effects
+        try {
+            if ($newStatus === self::APPROVED) {
+                // Send gated link via WhatsApp
+                $whatsapp = app(WhatsAppNotificationService::class);
+                $whatsapp->sendGatedLink($booking);
+            }
+
+            if ($newStatus === self::DOWN_PAYMENT) {
+                // Send payment reminder
+                $whatsapp = app(WhatsAppNotificationService::class);
+                $whatsapp->sendPaymentReminder($booking);
+            }
+
+            if ($newStatus === self::CONFIRMED) {
+                // Create Google Calendar event
+                $calendar = app(GoogleCalendarService::class);
+                $event = $calendar->createEvent($booking);
+
+                // Sync schedule record
+                if ($event && isset($event['id'])) {
+                    $booking->schedules()->create([
+                        'start_datetime' => $booking->event_date,
+                        'end_datetime' => $booking->event_date,
+                        'google_event_id' => $event['id'],
+                        'google_event_link' => $event['htmlLink'] ?? null,
+                        'synced_at' => now(),
+                    ]);
+                }
+
+                // Send confirmation WhatsApp
+                $whatsapp = app(WhatsAppNotificationService::class);
+                $whatsapp->sendBookingConfirmation($booking);
+            }
+        } catch (\Exception $e) {
+            // Log side-effect failure but dont block the transition
+            $booking->logs()->create([
+                'event' => 'side_effect_failed',
+                'payload' => json_encode(['error' => $e->getMessage()]),
+                'actor' => 'system',
+            ]);
+        }
 
         return $booking;
     }
