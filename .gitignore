@@ -2,3 +2,33 @@
 .workspace.env
 .secrets
 *.secret
+
+# Laravel generated files (committed by project scaffold)
+backend/.editorconfig
+backend/.gitattributes
+backend/.npmrc
+backend/AGENTS.md
+backend/CLAUDE.md
+backend/README.md
+backend/package.json
+backend/phpunit.xml
+backend/vite.config.js
+backend/database/.gitignore
+backend/database/factories/
+backend/resources/css/
+backend/resources/js/
+backend/public/.htaccess
+backend/public/favicon.ico
+backend/public/robots.txt
+backend/tests/
+backend/bootstrap/cache/
+backend/storage/app/private/
+backend/storage/app/public/
+backend/storage/framework/testing/
+
+# Agent/debug files
+.subagent/
+frontend/build_log.txt
+vercel_deploy.log
+verify_final.py
+verify_p6.py
