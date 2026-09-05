@@ -50,6 +50,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
+        <div className="p-2 border-t border-gray-100">
+          <Link href="/api/logout"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+            <span>🚪</span> <span>Keluar</span>
+          </Link>
+        </div>
         <div className="p-4 border-t border-gray-100">
           <Link href="/" className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>

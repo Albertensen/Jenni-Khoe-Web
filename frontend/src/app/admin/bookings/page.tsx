@@ -11,8 +11,21 @@ const MOCK_BOOKINGS = [
 export default function AdminBookings() {
   const [showToken, setShowToken] = useState<number | null>(null);
 
-  const generateToken = (id: number) => {
-    setShowToken(id);
+  const generateToken = async (id: number) => {
+    try {
+      const res = await fetch("/api/generate-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: id }),
+      });
+      const data = await res.json();
+      setShowToken(id);
+      if (data.success) {
+        alert("Link: " + data.url);
+      }
+    } catch {
+      alert("Gagal generate token. Coba lagi.");
+    }
     setTimeout(() => setShowToken(null), 5000);
   };
 

@@ -56,11 +56,6 @@ class Booking extends Model
         return \$this->hasMany(GatedToken::class);
     }
 
-    public function client()
-    {
-        return \$this->belongsTo(Client::class);
-    }
-
     public function logs()
     {
         return $this->hasMany(Log::class);
