@@ -5,6 +5,34 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-05 21:30 — Docker deploy, portfolio upload, PHP fixes, cron completion
+
+### Added
+- Dockerfile + docker-compose.yml + Nginx/Supervisor config — PHP 8.3 FPM + MySQL 8.0 container stack
+- `.env.production` template for deployment
+- Portfolio upload API: `POST /api/portfolio` (multipart image), `DELETE /api/portfolio/{id}`, `POST /api/portfolio/reorder`
+- Admin portfolio page — upload form with file input + image preview, delete button
+- `config/services.php` — Google Calendar + WhatsApp API config keys
+- `.env` — Google Calendar, WhatsApp config placeholder keys
+- `GET /api/schedule/check-expired-holds` endpoint (trigger Artisan command from cron-less env)
+
+### Changed
+- `app/Console/Commands/CheckExpiredHolds.php` — completed handle() logic (was stub), status check uses `BookingStateMachine::APPROVED` constant
+- `app/Http/Controllers/PortfolioController.php` — fixed `$p` variable reference (syntax error)
+- `app/Http/Controllers/ScheduleController.php` — fixed `$s` variable reference (syntax error)
+- `app/Http/Controllers/ContractController.php` — fixed `$c` variable reference (syntax error)
+- `app/Http/Controllers/PaymentController.php` — fixed `$p` variable reference (syntax error)
+- `app/Http/Controllers/AiLeadController.php` — fixed `$l` variable reference (syntax error)
+- `app/Http/Controllers/BookingController.php` — removed duplicate `index()` method (was 3 copies)
+- `app/Http/Controllers/GatedRouteController.php` — fixed broken class syntax
+- `app/Http/Controllers/PortfolioUploadController.php` — fixed `$i` variable reference
+- `app/Console/Kernel.php` — fixed escaped `$this` syntax
+- `app/Models/Booking.php` — fixed escaped `$` signs
+- All 38 PHP files verified syntax-clean
+- Frontend Next.js build: verified clean (exit 0)
+
+
+
 ## 2026-09-05
 
 ### 09:00 — Setup workspace & toolchain
