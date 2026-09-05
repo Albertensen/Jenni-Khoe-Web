@@ -3,6 +3,10 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import CheckAvailabilityForm from "@/components/CheckAvailabilityForm";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import PageTransition from "@/components/PageTransition";
+import LookbookMatrix from "@/components/portfolio/LookbookMatrix";
+import TextureLoupe from "@/components/portfolio/TextureLoupe";
+import BeforeAfterSlider2 from "@/components/portfolio/BeforeAfterSlider2";
+import BrideStories from "@/components/portfolio/BrideStories";
 
 export default function Home() {
   return (
@@ -52,7 +56,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Multidimensional Lookbook Matrix */}
+      <LookbookMatrix />
+
+
+
       {/* Interactive Transformation Section */}
+            {/* Interactive Transformation - Ultra-HD Loupe + Before/After 2.0 */}
       <section id="transformation" className="w-full max-w-4xl px-6 py-12 flex flex-col items-center">
         <div className="text-center mb-8">
           <span className="text-xs uppercase tracking-widest text-luxury-rose-gold font-medium">
@@ -62,22 +72,47 @@ export default function Home() {
             Before & After Transformation
           </h3>
           <p className="text-xs md:text-sm text-luxury-deep-slate/70 mt-2 font-light">
-            Geser slider untuk melihat keajaiban detail complexion dan pulasan warna.
+            Geser slider untuk melihat keajaiban complexion. Klik gambar untuk inspeksi tekstur kulit Ultra-HD.
           </p>
         </div>
 
-        <div className="w-full max-w-md md:max-w-lg">
-          <BeforeAfterSlider
+        <div className="w-full max-w-md md:max-w-lg mb-8">
+          <BeforeAfterSlider2
             beforeImg="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop"
-            afterImg="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop"
+            afterImgs={{
+              studio: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop",
+              natural: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?q=80&w=1000&auto=format&fit=crop",
+            }}
             labelBefore="BEFORE"
             labelAfter="AFTER GLAM"
           />
         </div>
+
+        <div className="w-full max-w-md md:max-w-lg">
+          <p className="text-center text-xs text-luxury-deep-slate/50 mb-3 uppercase tracking-wider font-medium">
+            Ultra-HD Texture Inspection
+          </p>
+          <div className="relative rounded-2xl overflow-hidden border border-luxury-champagne/40 shadow-lg">
+            <TextureLoupe
+              src="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop"
+              alt="Flawless skin texture inspection"
+              zoom={3.5}
+              lensSize={160}
+            />
+          </div>
+          <p className="text-center text-xs text-luxury-deep-slate/40 mt-2">
+            Hover untuk memperbesar tekstur kulit — bukti flawless tanpa efek cakey.
+          </p>
+        </div>
       </section>
 
       {/* Check Availability Section */}
-      <section id="availability" className="w-full px-6 py-16 bg-luxury-champagne-light/40 border-t border-luxury-champagne/30 flex flex-col items-center">
+      
+
+      {/* Bride Stories Carousel */}
+      <BrideStories />
+
+<section id="availability" className="w-full px-6 py-16 bg-luxury-champagne-light/40 border-t border-luxury-champagne/30 flex flex-col items-center">
         <CheckAvailabilityForm />
       </section>
 
