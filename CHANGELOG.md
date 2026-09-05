@@ -93,3 +93,10 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - frontend/tsconfig.json: strict mode
 - git branch `dev` created on remote
 - All Phase 1 items checked off in ROADMAP.md
+### 2026-09-05 11:56 — Phase 2 complete: Brand Identity & UI System
+- Typography: Cormorant Garamond (serif) + Plus Jakarta Sans (sans) + Cinzel (display)
+- Lenis smooth scroll integration (SmoothScrollProvider)
+- UI atomic components: Button (glassmorphism), FloatingLabelInput, Dialog, Toast (context)
+- Framer Motion page transitions (PageTransition)
+- Tailwind v4 theme: luxury palette already set
+- All Phase 2 items checked off

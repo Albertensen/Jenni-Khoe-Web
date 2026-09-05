@@ -2,9 +2,11 @@ import Image from "next/image";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import CheckAvailabilityForm from "@/components/CheckAvailabilityForm";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import PageTransition from "@/components/PageTransition";
 
 export default function Home() {
   return (
+    <PageTransition>
     <main className="min-h-screen bg-luxury-pearl text-luxury-deep-slate flex flex-col items-center">
       {/* Navigation Header */}
       <header className="w-full sticky top-0 z-40 bg-luxury-pearl/80 backdrop-blur-md border-b border-luxury-champagne/40 py-4 px-6 md:px-12 flex justify-between items-center">
@@ -84,8 +86,9 @@ export default function Home() {
 
       {/* Minimal Footer */}
       <footer className="w-full border-t border-luxury-champagne/40 py-8 px-6 text-center text-xs text-luxury-deep-slate/60">
-        <p>© {new Date().getFullYear()} Jenni Khoe Makeup Artist. All rights reserved.</p>
+        <p>Â© {new Date().getFullYear()} Jenni Khoe Makeup Artist. All rights reserved.</p>
       </footer>
     </main>
+    </PageTransition>
   );
 }

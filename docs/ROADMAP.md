@@ -21,10 +21,10 @@
 
 ### Phase 2: Brand Identity, Design Tokens & Luxury Visual System
 - [x] Setup token desain Tailwind (palet luxury champagne, rose gold, warm nude, deep charcoal)
-- [ ] Standardisasi tipografi: Editorial Display Serif (Cormorant Garamond / Cinzel) dipadukan dengan Plus Jakarta Sans (@Prime_Agent -> @Qwen_Worker)
-- [ ] Integrasi Lenis Smooth Scroll untuk interaksi scroll editorial (@Prime_Agent -> @Qwen_Worker)
-- [ ] Pembuatan komponen UI atomik: Button glassmorphism, floating label inputs, dialog modals, toast alerts (@Prime_Agent -> @Qwen_Worker)
-- [ ] Transisi halaman Framer Motion: Layout fade, image stagger, dan subtle text reveals (@Prime_Agent -> @Qwen_Worker)
+- [x] Standardisasi tipografi: Editorial Display Serif (Cormorant Garamond / Cinzel) dipadukan dengan Plus Jakarta Sans (@Prime_Agent)
+- [x] Integrasi Lenis Smooth Scroll untuk interaksi scroll editorial (@Prime_Agent)
+- [x] Pembuatan komponen UI atomik: Button glassmorphism, floating label inputs, dialog modals, toast alerts (@Prime_Agent)
+- [x] Transisi halaman Framer Motion: Layout fade, image stagger, dan subtle text reveals (@Prime_Agent)
 
 ---
 
@@ -50,7 +50,7 @@
 ### Phase 5: Database Architecture, Gated Logic & Closing Engine
 - [ ] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
 - [ ] **State Machine Enforcement:** Validasi transisi status booking di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Gated Route Cryptographic Generator:** Pembuatan token URL sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24–48 jam (@Prime_Agent -> @Qwen_Worker)
+- [ ] **Gated Route Cryptographic Generator:** Pembuatan token URL sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24â€“48 jam (@Prime_Agent -> @Qwen_Worker)
 - [ ] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
 
 #### Detail Skema Database (MySQL 8)
