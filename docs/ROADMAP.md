@@ -86,11 +86,11 @@
 ---
 
 ### Phase 7: Automation Engine, Calendar Sync & Admin Command Center
-- [ ] **HMAC-SHA256 Webhook Receiver (`POST /api/webhooks/payment`):** Verifikasi signature callback dari payment gateway dan proteksi idempotency anti-duplicate delivery (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Scheduled Task / Cron Laravel:** Pemeriksaan berkala tiap menit untuk otomatis mengubah status booking yang kedaluwarsa menjadi `hold_expired` (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Google Calendar Bi-Directional Sync:** Cek bentrok via FreeBusy API dan auto-create event saat status booking masuk ke `down_payment` atau `paid` (@Prime_Agent -> @Qwen_Worker)
-- [ ] **WhatsApp Automated Messenger:** Notifikasi konfirmasi otomatis terkirim beserta file PDF invoice dan jadwal resmi (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Admin Command Portal (`/admin` Architecture):**
+- [x] **HMAC-SHA256 Webhook Receiver (`POST /api/webhooks/payment`):** Verifikasi signature callback dari payment gateway dan proteksi idempotency anti-duplicate delivery (@Prime_Agent -> @Qwen_Worker)
+- [x] **Scheduled Task / Cron Laravel:** Pemeriksaan berkala tiap menit untuk otomatis mengubah status booking yang kedaluwarsa menjadi `hold_expired` (@Prime_Agent -> @Qwen_Worker)
+- [x] **Google Calendar Bi-Directional Sync:** Cek bentrok via FreeBusy API dan auto-create event saat status booking masuk ke `down_payment` atau `paid` (@Prime_Agent -> @Qwen_Worker)
+- [x] **WhatsApp Automated Messenger:** Notifikasi konfirmasi otomatis terkirim beserta file PDF invoice dan jadwal resmi (@Prime_Agent -> @Qwen_Worker)
+- [x] **Admin Command Portal (`/admin` Architecture):**
   - **Auth & Access Gatekeeper:** Secure Admin Authentication (Laravel Sanctum token + HTTP-only cookies di Next.js middleware) dengan proteksi brute-force login.
   - **Operational Dashboard (`/admin/dashboard`):** Matriks analitik real-time (Gross Revenue bulanan, Total Booking Aktif, Rasio Konversi Inquiry->Closing, Kalender Mini Jadwal Terdekat).
   - **Inquiry & Lead Management Pipeline (`/admin/inquiries`):** Tampilan Kanban Board interaktif & Tabel Data (Filter: Tanggal Acara, Lookbook, Status State Machine) lengkap dengan Quick Action Chat WhatsApp.
@@ -100,7 +100,7 @@
   - **Payment Reconciliation (`/admin/payments`):** Audit trail transaksi Midtrans/Xendit, verifikasi settlement QRIS/VA, status refund, dan tombol konfirmasi pelunasan manual.
   - **Portfolio & Lookbook CMS (`/admin/portfolio`):** Pengelolaan foto galeri, tagging undertone kulit & venue lighting, pengaturan pasangan Before/After slider, dan urutan highlight portofolio.
   - **AI Chatbot Lead Center (`/admin/ai-leads`):** Log percakapan AI Assistant publik untuk memonitor pertanyaan calon klien dan mengekstrak lead nomor telepon/WhatsApp yang terjaring.
-- [ ] Audit simulasi sandbox end-to-end: Admin login -> Review Inquiry -> Generate Quote -> Kirim WA -> Client Approve & Sign SPK -> QRIS Payment Settlement -> Auto Google Calendar Sync (@Prime_Agent)
+- [x] Audit simulasi sandbox end-to-end: Admin login -> Review Inquiry -> Generate Quote -> Kirim WA -> Client Approve & Sign SPK -> QRIS Payment Settlement -> Auto Google Calendar Sync (@Prime_Agent)
 
 ---
 

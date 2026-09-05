@@ -146,3 +146,15 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - Payment migration: added payment_channel, external_id, qr_code_url, va_number, bank fields
 - API routes: POST /payments/qris, POST /payments/va, POST /webhooks/payment
 - ROADMAP Phase 6: 5/5 complete
+## [Phase 7] — 2026-02-25
+
+### Added
+- WebhookController: idempotency protection via Cache lock (300s + 24h final TTL)
+- Console command CheckExpiredHolds: auto-expire booking holds via cron
+- GoogleCalendarService: FreeBusy check + createEvent for confirmed bookings
+- WhatsAppNotificationService: deep link generator, booking confirmation, payment reminder, gated link
+- Admin portal (9 pages): Dashboard with MetricCard, Inquiries kanban, Bookings with gated link generator, Interactive Schedule Calendar, SPK Contracts Archive, Payment Reconciliation, Portfolio CMS, AI Leads Center
+- SANDBOX_AUDIT.md: end-to-end flow simulation documentation
+
+### Changed
+- Kernel.php: registered CheckExpiredHolds schedule (everyMinute)
