@@ -82,3 +82,6 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - API routes: apiResource + custom endpoints
 - composer install: 85 deps (Laravel 11, Socialite, Dompdf)
 - Commit pushed to origin/main
+### 2026-09-05 11:40 — Vercel deploy after Laravel scaffold
+- Frontend deployed: https://jenni-khoe-3rnybozb8-rebahan.vercel.app (200 OK)
+- Backend scaffold + composer install pushed to GitHub
