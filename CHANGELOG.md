@@ -69,3 +69,9 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - CORE.md sect5: new rule — setiap selesai task wajib push + deploy
 - Continual harness: memory + policy updated with same rule
 - This commit is proof the rule works
+### 2026-09-05 11:01 — Push+Deploy rule proven + Vercel deploy
+- CORE.md sect5: embedded mandatory push+deploy per task
+- Continual harness: memory + policy updated
+- Vercel: removed vercel.json (auto-detect Next.js works fine)
+- Latest deploy: https://jenni-khoe-bjg3w2tym-rebahan.vercel.app (Ready)
+- This entry = proof of rule working
