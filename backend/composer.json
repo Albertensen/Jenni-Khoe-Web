@@ -4,9 +4,10 @@
     "type": "project",
     "require": {
         "php": ">=8.3",
-        "laravel/framework": "^11.0",
-        "laravel/socialite": "^5.0",
-        "barryvdh/laravel-dompdf": "^3.0"
+        "barryvdh/laravel-dompdf": "*",
+        "laravel/framework": "^13.0",
+        "laravel/pail": "^1.2",
+        "laravel/socialite": "*"
     },
     "autoload": {
         "psr-4": {
@@ -19,18 +20,7 @@
     "prefer-stable": true,
     "config": {
         "sort-packages": true,
-        "allow-plugins": true,
-        "audit": {
-            "ignore": [
-                "PKSA-m5cs-t1y6-qpcs",
-                "PKSA-3r5d-mb8f-1qw9",
-                "PKSA-mdq4-51ck-6kdq",
-                "PKSA-8qx3-n5y5-vvnd",
-                "PKSA-q46n-4fdk-zjr4",
-                "PKSA-qzrn-rnz3-85w1",
-                "PKSA-w7xr-vk7n-rstm"
-            ]
-        }
+        "allow-plugins": true
     },
     "extra": {
         "laravel": {
