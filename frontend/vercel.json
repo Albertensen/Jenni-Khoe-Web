@@ -1,6 +1,5 @@
 {
   "project": "jenni-khoe-mua",
-  "orgId": "rebahan",
   "settings": {
     "framework": "nextjs",
     "buildCommand": "next build",

@@ -64,3 +64,16 @@
 ---
 
 *Terakhir update: 2026-09-05*
+
+
+## 5. Wajib: Push + Deploy Setiap Task Selesai
+
+Setiap kali selesai task (file baru / perubahan / fix), **wajib**:
+1. **Audit** — pastikan tidak error, tidak placeholder, hasil sesuai spec
+2. **Git add + commit** — hanya file yang kamu ubah (`git add <file>`), pakai conventional commit
+3. **Git push** ke `origin main` — agar saya bisa cek perubahan di GitHub
+4. **Vercel deploy** — jalankan `vercel --prod --token ...` untuk frontend
+5. **Update CHANGELOG.md** — catat apa yang selesai, jam, file yang diubah
+
+> Aturan ini tidak bisa ditawar. Tidak ada "nanti aja" atau "besok push".
+> Selesai task = push & deploy dalam sesi yang sama.

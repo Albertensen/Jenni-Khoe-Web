@@ -65,3 +65,7 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - 35 items, 5 done, 30 pending
 - Source: gemini-code-1788580456790.md
 - Commit pushed to origin/main
+### 2026-09-05 10:57 — Embedded Push+Deploy rule (mandatory per task completion)
+- CORE.md sect5: new rule — setiap selesai task wajib push + deploy
+- Continual harness: memory + policy updated with same rule
+- This commit is proof the rule works
