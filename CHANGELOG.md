@@ -158,3 +158,18 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ### Changed
 - Kernel.php: registered CheckExpiredHolds schedule (everyMinute)
+
+## [Phase 8] — 2026-02-26
+
+### Security
+- SignatureCanvas: XSS sanitization — data URL prefix validation on save
+- API rate limiting: checkRateLimit() utility, 10 req/60s per IP on /api/chat and /api/leads
+- GatedRouteController: token format validation (64-char hex regex prevents injection)
+
+### Performance
+- next.config.ts: compiler.removeConsole in production (dead code elimination)
+- Fonts: latin subset via next/font (Plus Jakarta Sans, Cinzel, Cormorant Garamond)
+
+### SEO
+- JSON-LD Schema.org LocalBusiness + OfferCatalog (4 service types) in root layout
+- Metadata: Open Graph tags, keywords, robots index/follow, title template

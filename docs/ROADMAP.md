@@ -105,10 +105,10 @@
 ---
 
 ### Phase 8: Hardening, SEO Performance & Production Launch
-- [ ] **Security Hardening:** Sanitasi payload canvas tanda tangan (mencegah XSS), rate-limiting API route publik (`throttle:10,1`), dan enkripsi token URL (@Prime_Agent)
-- [ ] **Performance & Asset Optimization:** Next.js bundle optimization, font subsetting, dan target skor Lighthouse Mobile > 90 (@Prime_Agent)
-- [ ] **Local SEO & Rich Snippets:** Implementasi Schema.org JSON-LD (LocalBusiness & Service) untuk ranking pencarian MUA (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Production Deployment:** Deployment frontend Next.js ke Vercel dan backend Laravel API ke hosting/server produksi (@Prime_Agent)
+- [x] **Security Hardening:** Sanitasi payload canvas tanda tangan (mencegah XSS), rate-limiting API route publik (`throttle:10,1`), dan enkripsi token URL (@Prime_Agent)
+- [x] **Performance & Asset Optimization:** Next.js bundle optimization, font subsetting, dan target skor Lighthouse Mobile > 90 (@Prime_Agent)
+- [x] **Local SEO & Rich Snippets:** Implementasi Schema.org JSON-LD (LocalBusiness & Service) untuk ranking pencarian MUA (@Prime_Agent -> @Qwen_Worker)
+- [x] **Production Deployment:** Deployment frontend Next.js ke Vercel dan backend Laravel API ke hosting/server produksi (@Prime_Agent)
 
 ---
 
