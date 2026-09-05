@@ -59,3 +59,9 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - backend/.env.example: env config
 - Commit 17f50ad pushed to origin/main
 - Status: ✅ local = remote (clean)
+### 2026-09-05 10:55 — Master roadmap replacement from Gemini spec
+- docs/ROADMAP.md: replaced with 8-phase master roadmap (luxury portfolio + autonomous booking engine)
+- Tech stack: Next.js 15, React 19, Tailwind v4, Laravel 11, MySQL 8, Xendit, Google Calendar, WhatsApp
+- 35 items, 5 done, 30 pending
+- Source: gemini-code-1788580456790.md
+- Commit pushed to origin/main
