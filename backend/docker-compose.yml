@@ -1,0 +1,52 @@
+services:
+  app:
+    build: .
+    container_name: jenni-khoe-backend
+    ports:
+      - "80:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: jenni_khoe
+      DB_USERNAME: jenni_khoe
+      DB_PASSWORD: "${DB_PASSWORD}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - storage_data:/var/www/html/storage
+    restart: unless-stopped
+    networks:
+      - jenni-khoe-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: jenni-khoe-mysql
+    environment:
+      MYSQL_DATABASE: jenni_khoe
+      MYSQL_USER: jenni_khoe
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - jenni-khoe-net
+
+volumes:
+  mysql_data:
+  storage_data:
+
+networks:
+  jenni-khoe-net:
+    driver: bridge

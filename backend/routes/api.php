@@ -35,3 +35,9 @@ Route::get('/contracts', [App\Http\Controllers\ContractController::class, 'index
 Route::get('/ai-leads', [App\Http\Controllers\AiLeadController::class, 'index']);
 Route::get('/portfolio', [App\Http\Controllers\PortfolioController::class, 'index']);
 Route::get('/schedules', [App\Http\Controllers\ScheduleController::class, 'index']);
+// Portfolio upload
+Route::post('/portfolio', [App\Http\Controllers\PortfolioUploadController::class, 'store']);
+Route::delete('/portfolio/{id}', [App\Http\Controllers\PortfolioUploadController::class, 'destroy']);
+Route::post('/portfolio/reorder', [App\Http\Controllers\PortfolioUploadController::class, 'reorder']);
+// Scheduler endpoint (for cron-less env)
+Route::get('/schedule/check-expired-holds', function () {\Artisan::call('bookings:check-expired-holds'); return response()->json(['success' => true]); });

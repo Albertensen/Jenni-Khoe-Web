@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+
+
+    'google' => [
+        'calendar_api_key' => env('GOOGLE_CALENDAR_API_KEY'),
+        'calendar_id' => env('GOOGLE_CALENDAR_ID', 'primary'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'refresh_token' => env('GOOGLE_REFRESH_TOKEN'),
+    ],
+
+    'whatsapp' => [
+        'endpoint' => env('WHATSAPP_ENDPOINT', 'https://api.whatsapp.com/send'),
+        'api_key' => env('WHATSAPP_API_KEY'),
+        'phone' => env('WHATSAPP_PHONE', '6281234567890'),
+    ],
 ];

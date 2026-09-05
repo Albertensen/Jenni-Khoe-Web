@@ -53,7 +53,7 @@ class Booking extends Model
 
     public function gatedTokens()
     {
-        return \$this->hasMany(GatedToken::class);
+        return $this->hasMany(GatedToken::class);
     }
 
     public function logs()

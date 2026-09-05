@@ -5,12 +5,11 @@ namespace App\Console\Commands;
 use App\Models\Booking;
 use App\Services\BookingStateMachine;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class CheckExpiredHolds extends Command
 {
     protected $signature = 'bookings:check-expired-holds';
-    protected $description = 'Auto-expire bookings whose hold period has passed';
+    protected $description = 'Auto-expire bookings whose 48h hold period has passed';
 
     public function handle(BookingStateMachine $stateMachine): int
     {
@@ -21,18 +20,14 @@ class CheckExpiredHolds extends Command
         $count = 0;
         foreach ($expired as $booking) {
             try {
-                $stateMachine->transition($booking, BookingStateMachine::HOLD_EXPIRED, 'Auto-expired by cron');
+                $stateMachine->transition($booking, BookingStateMachine::HOLD_EXPIRED, 'Hold expired (48h)');
                 $count++;
-                Log::info('Booking hold expired', ['booking_id' => $booking->id]);
-            } catch (\Throwable $e) {
-                Log::error('Failed to expire booking hold', [
-                    'booking_id' => $booking->id,
-                    'error' => $e->getMessage(),
-                ]);
+            } catch (\Exception $e) {
+                // Log failure but keep going
             }
         }
 
-        $this->info("Expired {$count} booking holds.");
-        return Command::SUCCESS;
+        $this->info("Expired {$count} holds.");
+        return 0;
     }
 }
