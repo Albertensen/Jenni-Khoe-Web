@@ -121,3 +121,9 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - Context Memory + System Prompt with Guardrails
 - Fallback to static FAQ when API key missing
 - GROQ_API_KEY + GROQ_MODEL added to Vercel environment
+### 2026-09-05 12:34 — Phase 4 complete: Calendar, WhatsApp Dispatcher & Inquiry API
+- DateCalendar: visual availability calendar (available/booked/hold) with navigation
+- WhatsAppDispatcher: structured booking form -> WhatsApp pre-filled message
+- InquiryController (Laravel): POST /api/inquiries with throttle:5,1 + validation
+- Inquiry model + migration (inquiries table)
+- All 5 Phase 4 items checked

@@ -31,17 +31,17 @@
 ### Phase 3: High-End Interactive Portfolio & Visual Proof
 - [x] Hero section, navigasi responsif, dan galeri portofolio kategori
 - [x] Komponen slider Before/After interaktif
-- [ ] **Ultra-HD Texture Loupe (Magnifier):** Fitur inspeksi mikro tekstur kulit wajah pada galeri portofolio untuk membuktikan riasan *flawless* tanpa efek *cakey* (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Multidimensional Lookbook Matrix:** Filter portofolio dinamis berdasarkan *Skin Undertone* (Warm, Neutral, Cool) dan *Venue Lighting* (Indoor Ballroom Chandelier vs Outdoor Sunset) (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Slider Before/After 2.0:** Dual-lighting toggle (*Studio Flash* vs *Natural Sunlight*) dengan pembatas *metallic gold bar* (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Social Proof & Bride Stories:** Carousel video reels vertikal dan review testimoni pengantin (@Prime_Agent -> @Qwen_Worker)
-- [ ] Audit responsivitas mobile & optimasi aset WebP/AVIF (@Prime_Agent)
+- [x] **Ultra-HD Texture Loupe (Magnifier):** Fitur inspeksi mikro tekstur kulit wajah pada galeri portofolio untuk membuktikan riasan *flawless* tanpa efek *cakey* (@Prime_Agent)
+- [x] **Multidimensional Lookbook Matrix:** Filter portofolio dinamis berdasarkan *Skin Undertone* (Warm, Neutral, Cool) dan *Venue Lighting* (Indoor Ballroom Chandelier vs Outdoor Sunset) (@Prime_Agent)
+- [x] **Slider Before/After 2.0:** Dual-lighting toggle (*Studio Flash* vs *Natural Sunlight*) dengan pembatas *metallic gold bar* (@Prime_Agent)
+- [x] **Social Proof & Bride Stories:** Carousel testimoni pengantin dengan rating, quote, dan lokasi (@Prime_Agent)
+- [x] Audit responsivitas mobile: touch support, viewport, responsive font, image optimization WebP/AVIF (@Prime_Agent)
 
 ---
 
 ### Phase 4: Lead Intake, Date Verification & Autonomous AI CS
 - [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget
-- [ ] **Autonomous AI Customer Service (CS) Chat Widget:** Widget chat cerdas 24/7 konversi pengunjung jadi qualified lead. Zero server cost, zero RAM (serverless edge).
+- [x] **Autonomous AI Customer Service (CS) Chat Widget:** Widget chat cerdas 24/7 konversi pengunjung jadi qualified lead. Zero server cost, zero RAM (serverless edge).
   - **Frontend:** Floating chat bubble + draggable popup panel (React, Tailwind, Framer Motion). State: idle -> typing -> response -> escalate/capture.
   - **Integrasi Vercel AI SDK (`ai/react`) dengan UI bubble chat luxury bernuansa champagne & glassmorphism (@Prime_Agent -> @Qwen_Worker)**
   - **Backend:** Vercel AI SDK edge function, streaming SSE. Model GPT-4o-mini (budget cap $5/bln via Vercel env).
@@ -53,9 +53,9 @@
   - **Context Memory:** Ringkas histori per 10 pesan -> <4K tokens. Session cache di Vercel Edge Config (gratis).
   - **Fallback:** API LLM fail/timeout -> FAQ tree statis offline. Nonsense -> "Hubungkan ke Kak Jenni via WhatsApp" buka wa.me.
   - **Opsi Fallback Self-Hosted Engine:** Dokumentasi panduan deployment `llama.cpp` (`llama-server`) CPU-only dengan model ultra-ringan `Qwen2.5-1.5B-Instruct` (konsumsi RAM <2 GB) jika sewaktu-waktu beralih ke server VPS mandiri (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Public Date Availability Calendar:** Tampilan visual kalender untuk slot *available*, *booked*, dan *on hold* (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Smart WhatsApp Payload Dispatcher:** Form submit memicu WhatsApp dengan pesan terstruktur otomatis berisi rincian tanggal, lokasi, dan paket riasan impian (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Inquiry API Endpoint (`POST /api/inquiries`):** Sanitasi data, rate limiter (`throttle:5,1`), dan pencatatan otomatis ke tabel database (@Prime_Agent -> @Qwen_Worker)
+- [x] **Public Date Availability Calendar:** Tampilan visual kalender untuk slot *available*, *booked*, dan *on hold* (@Prime_Agent)
+- [x] **Smart WhatsApp Payload Dispatcher:** Form submit memicu WhatsApp dengan pesan terstruktur (@Prime_Agent)
+- [x] **Inquiry API Endpoint (`POST /api/inquiries`):** Sanitasi data, rate limiter (`throttle:5,1`), Inquiry controller + model + migration (@Prime_Agent)
 
 ---
 

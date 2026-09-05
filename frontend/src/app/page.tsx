@@ -7,6 +7,8 @@ import LookbookMatrix from "@/components/portfolio/LookbookMatrix";
 import TextureLoupe from "@/components/portfolio/TextureLoupe";
 import BeforeAfterSlider2 from "@/components/portfolio/BeforeAfterSlider2";
 import BrideStories from "@/components/portfolio/BrideStories";
+import DateCalendar from "@/components/DateCalendar";
+import WhatsAppDispatcher from "@/components/WhatsAppDispatcher";
 
 export default function Home() {
   return (
@@ -114,6 +116,10 @@ export default function Home() {
 
 <section id="availability" className="w-full px-6 py-16 bg-luxury-champagne-light/40 border-t border-luxury-champagne/30 flex flex-col items-center">
         <CheckAvailabilityForm />
+
+      <DateCalendar />
+
+      <WhatsAppDispatcher />
       </section>
 
       {/* Floating CS */}
