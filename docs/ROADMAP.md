@@ -39,8 +39,16 @@
 
 ---
 
-### Phase 4: Lead Intake, Date Verification & Live CS
+### Phase 4: Lead Intake, Date Verification & Autonomous AI CS
 - [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget
+- [ ] **Autonomous AI Customer Service (CS) Chat Widget:** Widget chat cerdas 24/7 konversi pengunjung jadi qualified lead. Zero server cost, zero RAM (serverless edge).
+  - **Frontend:** Floating chat bubble + draggable popup panel (React, Tailwind, Framer Motion). State: idle -> typing -> response -> escalate/capture.
+  - **Backend:** Vercel AI SDK edge function, streaming SSE. Model GPT-4o-mini (budget cap $5/bln via Vercel env).
+  - **System Prompt:** Persona "Jenni Khoe Virtual Assistant" — luxury tone, BI/EN, knowledge base from website content. Scope: jadwal, paket, harga, venue, skin prep only.
+  - **Intent Detection:** Classifier: `greeting`, `faq_package`, `faq_price`, `availability_check`, `booking_intent`, `complaint`, `spam`. Escalate ke WhatsApp CS untuk `booking_intent` / `complaint`.
+  - **Lead Capture:** After 3-5 messages -> trigger inline form (nama, WA, tanggal acara) -> POST `/api/leads` (Laravel). Simpan localStorage consent.
+  - **Context Memory:** Ringkas histori per 10 pesan -> <4K tokens. Session cache di Vercel Edge Config (gratis).
+  - **Fallback:** API LLM fail/timeout -> FAQ tree statis offline. Nonsense -> "Hubungkan ke Kak Jenni via WhatsApp" buka wa.me.
 - [ ] **Public Date Availability Calendar:** Tampilan visual kalender untuk slot *available*, *booked*, dan *on hold* (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Smart WhatsApp Payload Dispatcher:** Form submit memicu WhatsApp dengan pesan terstruktur otomatis berisi rincian tanggal, lokasi, dan paket riasan impian (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Inquiry API Endpoint (`POST /api/inquiries`):** Sanitasi data, rate limiter (`throttle:5,1`), dan pencatatan otomatis ke tabel database (@Prime_Agent -> @Qwen_Worker)
