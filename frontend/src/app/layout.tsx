@@ -28,6 +28,13 @@ export const metadata: Metadata = {
     "Exclusive luxury makeup artist service for weddings, pre-weddings, and special occasions.",
 };
 
+
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#FDFBF7',
+};
 export default function RootLayout({
   children,
 }: Readonly<{

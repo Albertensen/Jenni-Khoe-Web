@@ -105,7 +105,7 @@ export default function BeforeAfterSlider2({
           value={sliderPosition}
           onChange={(e) => setSliderPosition(Number(e.target.value))}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
-          aria-label="Before and after transformation slider"
+          aria-label="Before and after transformation slider" style={{ touchAction: "manipulation" }}
         />
       </div>
     </div>

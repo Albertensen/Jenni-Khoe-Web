@@ -26,13 +26,23 @@ export default function TextureLoupe({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const imgRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const updatePosition = useCallback((clientX: number, clientY: number) => {
     if (!imgRef.current) return;
     const rect = imgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     setPosition({ x, y });
   }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    updatePosition(e.clientX, e.clientY);
+  }, [updatePosition]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (touch) updatePosition(touch.clientX, touch.clientY);
+  }, [updatePosition]);
 
   const bgPosX = -(position.x * zoom - lensSize / 2);
   const bgPosY = -(position.y * zoom - lensSize / 2);
@@ -44,6 +54,9 @@ export default function TextureLoupe({
       onMouseEnter={() => setShowLoupe(true)}
       onMouseLeave={() => setShowLoupe(false)}
       onMouseMove={handleMouseMove}
+      onTouchStart={() => setShowLoupe(true)}
+      onTouchEnd={() => setShowLoupe(false)}
+      onTouchMove={handleTouchMove}
       style={{ width: '100%', aspectRatio: `${imgWidth}/${imgHeight}` }}
     >
       <Image
