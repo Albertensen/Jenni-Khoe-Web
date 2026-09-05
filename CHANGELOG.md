@@ -113,3 +113,11 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - next.config.ts: WebP/AVIF image formats, device sizes
 - layout.tsx: viewport metadata (width, initialScale, themeColor)
 - ROADMAP Phase 3: 7/7 checked [x]
+### 2026-09-05 12:27 — Phase 4: Autonomous AI CS Chat Widget
+- ChatBubble: floating luxury glassmorphism bubble + chat panel (React, Framer Motion, Tailwind)
+- API /api/chat: Vercel AI SDK edge function with Groq Cloud (llama3-8b-8192)
+- API /api/leads: lead capture endpoint with validation
+- FAQ knowledge base (9 items) + Intent Detector (7 intents)
+- Context Memory + System Prompt with Guardrails
+- Fallback to static FAQ when API key missing
+- GROQ_API_KEY + GROQ_MODEL added to Vercel environment
