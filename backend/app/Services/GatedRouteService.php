@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\GatedToken;
-use Illuminate\Support\Str;
 
 class GatedRouteService
 {
@@ -16,7 +15,7 @@ class GatedRouteService
 
         return GatedToken::create([
             'booking_id' => $booking->id,
-            'token' => Str::random(64),
+            'token' => bin2hex(random_bytes(32)),
             'expires_at' => now()->addHours($ttl),
         ]);
     }

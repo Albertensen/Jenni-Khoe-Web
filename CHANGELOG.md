@@ -40,6 +40,13 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - Created `CHANGELOG.md` — progress log (wajib update setiap perubahan)
 - Removed `PROJECT_STATE.md` dan `TASK_LOG.md` (digantikan CORE.md + CHANGELOG.md)
 
+
+## 2026-09-05 19:41 — Phase 8 bug fixes (audit-driven)
+
+### Critical Fixes
+- `backend/bootstrap/app.php`: Added `api:` route loading — sebelumnya hanya web.php, seluruh backend API tidak berfungsi (@Prime_Agent)
+- `backend/app/Services/GatedRouteService.php`: Ganti `Str::random(64)` ke `bin2hex(random_bytes(32))` — token sebelumnya pakai 62-char alphabet (a-z, A-Z, 0-9) tapi controller validasi regex `/^[a-f0-9]{64}$/`, akibatnya **setiap token ditolak** (@Prime_Agent)
+- `frontend/src/app/api/leads/route.ts`: Tambah `checkRateLimit()` — sebelumnya import utility tapi tidak pernah dipanggil, endpoint publik tanpa proteksi (@Prime_Agent)
 ---
 
 ## Format

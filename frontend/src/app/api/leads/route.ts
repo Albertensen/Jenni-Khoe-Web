@@ -14,6 +14,16 @@ interface LeadBody {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 10 req/60s per IP
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+    const rl = checkRateLimit("leads:" + ip, 10, 60);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: { "Retry-After": String(rl.reset) } }
+      );
+    }
+
     const body: LeadBody = await req.json();
 
     // Validation
