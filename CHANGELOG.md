@@ -48,3 +48,14 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 **Files:** [file yang dihasilkan]
 **Status:** Done / WIP / Failed
 **Notes:** [catatan penting]
+
+### 2026-09-05 10:40 — Git sync GitHub
+- README.md: updated with WAJIB BACA redirect to CORE.md
+- CORE.md: created (master entry point)
+- CHANGELOG.md: created (progress log)
+- frontend/.gitignore: added .vercel
+- frontend/vercel.json: created
+- backend/composer.json: Laravel 11 scaffold
+- backend/.env.example: env config
+- Commit 17f50ad pushed to origin/main
+- Status: ✅ local = remote (clean)
