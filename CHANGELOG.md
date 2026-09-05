@@ -75,3 +75,10 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - Vercel: removed vercel.json (auto-detect Next.js works fine)
 - Latest deploy: https://jenni-khoe-bjg3w2tym-rebahan.vercel.app (Ready)
 - This entry = proof of rule working
+### 2026-09-05 11:39 — Phase 1 Laravel scaffold complete
+- 10 migrations: users, clients, bookings, quotations, contracts, payments, schedules, logs, social_accounts, inquiries
+- 10 Eloquent models with relationships & casts
+- 3 API controllers: CRUD clients/bookings, inquiry intake, date availability
+- API routes: apiResource + custom endpoints
+- composer install: 85 deps (Laravel 11, Socialite, Dompdf)
+- Commit pushed to origin/main
