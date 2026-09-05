@@ -47,6 +47,7 @@
   - **Backend:** Vercel AI SDK edge function, streaming SSE. Model GPT-4o-mini (budget cap $5/bln via Vercel env).
   - **Serverless Endpoint (`app/api/chat/route.ts`):** Koneksi ke Free-Tier API (Groq Cloud / Google AI Studio) untuk pemrosesan <1 detik tanpa beban RAM VPS (@Prime_Agent -> @Qwen_Worker)
   - **System Prompt:** Persona "Jenni Khoe Virtual Assistant" — luxury tone, BI/EN, knowledge base from website content. Scope: jadwal, paket, harga, venue, skin prep only.
+  - **System Prompt Guardrails:** Persona asisten Jenni Khoe MUA yang hangat & elegan, bertugas mengkualifikasi prospek (menanyakan tanggal acara & lokasi/venue), menjawab FAQ paket, dan mengarahkan klien ke form ketersediaan jadwal / WhatsApp (@Prime_Agent -> @Qwen_Worker)
   - **Intent Detection:** Classifier: `greeting`, `faq_package`, `faq_price`, `availability_check`, `booking_intent`, `complaint`, `spam`. Escalate ke WhatsApp CS untuk `booking_intent` / `complaint`.
   - **Lead Capture:** After 3-5 messages -> trigger inline form (nama, WA, tanggal acara) -> POST `/api/leads` (Laravel). Simpan localStorage consent.
   - **Context Memory:** Ringkas histori per 10 pesan -> <4K tokens. Session cache di Vercel Edge Config (gratis).
