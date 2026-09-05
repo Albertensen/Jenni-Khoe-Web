@@ -135,3 +135,14 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 - Booking model: added gatedTokens() + client() relations
 - DATABASE_AUDIT.md: schema audit, FK validation, transition matrix, sanitization policy
 - ROADMAP Phase 5: 4/4 complete
+### 2026-09-05 12:48 — Phase 6: Closing Portal, E-Signature, PDF Engine & Payment Gateway
+- UrgencyCountdownBanner: countdown timer (hold_expires_at) with expiry callback
+- AddonCustomizer: 8 add-on items with real-time subtotal + DP 50% calculator
+- SignatureCanvas: touch + mouse signature pad with clear/reset
+- PdfEngineService: Dompdf-based invoice + contract generation with watermark
+- PDF views: invoice.blade.php (itemized) + contract.blade.php (legal terms + signature)
+- PaymentGatewayService: QRIS + VA charge creation, HMAC-SHA256 webhook verification
+- PaymentController + WebhookController: REST endpoints for payment + callback
+- Payment migration: added payment_channel, external_id, qr_code_url, va_number, bank fields
+- API routes: POST /payments/qris, POST /payments/va, POST /webhooks/payment
+- ROADMAP Phase 6: 5/5 complete

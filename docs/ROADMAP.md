@@ -77,11 +77,11 @@
 ---
 
 ### Phase 6: The Closing Portal (`/g/{token}`), E-Signature & Payment
-- [ ] **Urgency Countdown Banner:** Jam hitung mundur sisa waktu penahanan slot tanggal (misal: "23:59:00 sebelum slot dilepas ke calon pengantin lain") (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Dynamic Add-on Customizer (Real-time Calculator):** Checkbox interaktif untuk penambahan rias Ibu/Mertua, Bridesmaid, Extra Touch-Up Malam, dan Transport Luar Kota yang langsung memperbarui subtotal dan kalkulasi DP 50% secara instan (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Digital SPK Canvas (Surat Perjanjian Kerja):** Canvas tanda tangan digital interaktif via jari / stylus lengkap dengan klausul hukum sebelum pembayaran (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Automated PDF Engine:** Penggabungan invoice rincian add-on dan tanda tangan digital klien ke file PDF resmi ber-watermark (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Payment Gateway Integration:** Checkout terintegrasi QRIS instan dan Virtual Account via Midtrans / Xendit Snap & Core API (@Prime_Agent -> @Qwen_Worker)
+- [x] **Urgency Countdown Banner:** Countdown timer component (UrgencyCountdownBanner.tsx) (@Prime_Agent -> @Qwen_Worker)
+- [x] **Dynamic Add-on Customizer (Real-time Calculator):** AddonCustomizer.tsx with 8 addons, real-time subtotal & DP 50% (@Prime_Agent -> @Qwen_Worker)
+- [x] **Digital SPK Canvas (Surat Perjanjian Kerja):** SignatureCanvas.tsx — touch + mouse signature capture (@Prime_Agent -> @Qwen_Worker)
+- [x] **Automated PDF Engine:** PdfEngineService (Laravel + Dompdf) — invoice + contract PDF with watermark (@Prime_Agent -> @Qwen_Worker)
+- [x] **Payment Gateway Integration:** PaymentGatewayService + WebhookController + PaymentController (QRIS/VA) (@Prime_Agent -> @Qwen_Worker)
 
 ---
 
