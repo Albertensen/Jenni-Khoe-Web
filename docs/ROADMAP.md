@@ -52,6 +52,7 @@
   - **Lead Capture:** After 3-5 messages -> trigger inline form (nama, WA, tanggal acara) -> POST `/api/leads` (Laravel). Simpan localStorage consent.
   - **Context Memory:** Ringkas histori per 10 pesan -> <4K tokens. Session cache di Vercel Edge Config (gratis).
   - **Fallback:** API LLM fail/timeout -> FAQ tree statis offline. Nonsense -> "Hubungkan ke Kak Jenni via WhatsApp" buka wa.me.
+  - **Opsi Fallback Self-Hosted Engine:** Dokumentasi panduan deployment `llama.cpp` (`llama-server`) CPU-only dengan model ultra-ringan `Qwen2.5-1.5B-Instruct` (konsumsi RAM <2 GB) jika sewaktu-waktu beralih ke server VPS mandiri (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Public Date Availability Calendar:** Tampilan visual kalender untuk slot *available*, *booked*, dan *on hold* (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Smart WhatsApp Payload Dispatcher:** Form submit memicu WhatsApp dengan pesan terstruktur otomatis berisi rincian tanggal, lokasi, dan paket riasan impian (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Inquiry API Endpoint (`POST /api/inquiries`):** Sanitasi data, rate limiter (`throttle:5,1`), dan pencatatan otomatis ke tabel database (@Prime_Agent -> @Qwen_Worker)
