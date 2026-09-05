@@ -43,7 +43,9 @@
 - [x] Form publik "Cek Ketersediaan Tanggal" + WhatsApp floating widget
 - [ ] **Autonomous AI Customer Service (CS) Chat Widget:** Widget chat cerdas 24/7 konversi pengunjung jadi qualified lead. Zero server cost, zero RAM (serverless edge).
   - **Frontend:** Floating chat bubble + draggable popup panel (React, Tailwind, Framer Motion). State: idle -> typing -> response -> escalate/capture.
+  - **Integrasi Vercel AI SDK (`ai/react`) dengan UI bubble chat luxury bernuansa champagne & glassmorphism (@Prime_Agent -> @Qwen_Worker)**
   - **Backend:** Vercel AI SDK edge function, streaming SSE. Model GPT-4o-mini (budget cap $5/bln via Vercel env).
+  - **Serverless Endpoint (`app/api/chat/route.ts`):** Koneksi ke Free-Tier API (Groq Cloud / Google AI Studio) untuk pemrosesan <1 detik tanpa beban RAM VPS (@Prime_Agent -> @Qwen_Worker)
   - **System Prompt:** Persona "Jenni Khoe Virtual Assistant" — luxury tone, BI/EN, knowledge base from website content. Scope: jadwal, paket, harga, venue, skin prep only.
   - **Intent Detection:** Classifier: `greeting`, `faq_package`, `faq_price`, `availability_check`, `booking_intent`, `complaint`, `spam`. Escalate ke WhatsApp CS untuk `booking_intent` / `complaint`.
   - **Lead Capture:** After 3-5 messages -> trigger inline form (nama, WA, tanggal acara) -> POST `/api/leads` (Laravel). Simpan localStorage consent.
