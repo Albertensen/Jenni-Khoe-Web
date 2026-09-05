@@ -62,7 +62,7 @@
 ### Phase 5: Database Architecture, Gated Logic & Closing Engine
 - [x] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
 - [x] **State Machine Enforcement:** BookingStateMachine service di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
-- [x] **Gated Route Cryptographic Generator:** GatedToken model + GatedRouteService + controller sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24â€“48 jam (@Prime_Agent -> @Qwen_Worker)
+- [x] **Gated Route Cryptographic Generator:** GatedToken model + GatedRouteService + controller sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24–48 jam (@Prime_Agent -> @Qwen_Worker)
 - [x] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
 
 #### Detail Skema Database (MySQL 8)
@@ -85,13 +85,22 @@
 
 ---
 
-### Phase 7: Automation Engine, Calendar Sync & Admin Center
+### Phase 7: Automation Engine, Calendar Sync & Admin Command Center
 - [ ] **HMAC-SHA256 Webhook Receiver (`POST /api/webhooks/payment`):** Verifikasi signature callback dari payment gateway dan proteksi idempotency anti-duplicate delivery (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Scheduled Task / Cron Laravel:** Pemeriksaan berkala tiap menit untuk otomatis mengubah status booking yang kedaluwarsa menjadi `hold_expired` (@Prime_Agent -> @Qwen_Worker)
 - [ ] **Google Calendar Bi-Directional Sync:** Cek bentrok via FreeBusy API dan auto-create event saat status booking masuk ke `down_payment` atau `paid` (@Prime_Agent -> @Qwen_Worker)
 - [ ] **WhatsApp Automated Messenger:** Notifikasi konfirmasi otomatis terkirim beserta file PDF invoice dan jadwal resmi (@Prime_Agent -> @Qwen_Worker)
-- [ ] **Admin Command Dashboard (`/admin`):** Kalender jadwal kerja terpadu, pipeline Kanban inquiry, dan tombol 1-Click "Approve & Generate Closing Link" (@Prime_Agent -> @Qwen_Worker)
-- [ ] Audit simulasi sandbox: Form -> Nego -> Approve -> Add-on -> SPK -> QRIS Bayar -> Calendar Lock (@Prime_Agent)
+- [ ] **Admin Command Portal (`/admin` Architecture):**
+  - **Auth & Access Gatekeeper:** Secure Admin Authentication (Laravel Sanctum token + HTTP-only cookies di Next.js middleware) dengan proteksi brute-force login.
+  - **Operational Dashboard (`/admin/dashboard`):** Matriks analitik real-time (Gross Revenue bulanan, Total Booking Aktif, Rasio Konversi Inquiry->Closing, Kalender Mini Jadwal Terdekat).
+  - **Inquiry & Lead Management Pipeline (`/admin/inquiries`):** Tampilan Kanban Board interaktif & Tabel Data (Filter: Tanggal Acara, Lookbook, Status State Machine) lengkap dengan Quick Action Chat WhatsApp.
+  - **1-Click Quotation & Gated Link Generator (`/admin/bookings/[id]/quote`):** Form admin untuk memilih paket dasar, mencentang add-ons custom, menetapkan diskon/markup, dan langsung menghasilkan tautan privat `/g/{token}` beserta pesan WhatsApp siap kirim.
+  - **Schedule & Calendar Master (`/admin/schedules`):** Tampilan kalender FullCalendar interaktif sinkron langsung dengan slot Google Calendar MUA. Fitur manual date blocking (cuti/libur/booked offline).
+  - **Contract & SPK Archive (`/admin/contracts`):** Viewer tanda tangan digital klien, unduhan PDF SPK resmi, dan verifikasi metadata penandatanganan (IP Address, timestamp).
+  - **Payment Reconciliation (`/admin/payments`):** Audit trail transaksi Midtrans/Xendit, verifikasi settlement QRIS/VA, status refund, dan tombol konfirmasi pelunasan manual.
+  - **Portfolio & Lookbook CMS (`/admin/portfolio`):** Pengelolaan foto galeri, tagging undertone kulit & venue lighting, pengaturan pasangan Before/After slider, dan urutan highlight portofolio.
+  - **AI Chatbot Lead Center (`/admin/ai-leads`):** Log percakapan AI Assistant publik untuk memonitor pertanyaan calon klien dan mengekstrak lead nomor telepon/WhatsApp yang terjaring.
+- [ ] Audit simulasi sandbox end-to-end: Admin login -> Review Inquiry -> Generate Quote -> Kirim WA -> Client Approve & Sign SPK -> QRIS Payment Settlement -> Auto Google Calendar Sync (@Prime_Agent)
 
 ---
 
@@ -103,9 +112,11 @@
 
 ---
 
-INSTRUKSI EKSEKUSI SEKARANG:
-1. Simpan konten di atas ke path `C:\Users\Administrator\Documents\WEB MUA\docs\ROADMAP.md`.
-2. Verifikasi keutuhan berkas.
-3. Jalankan perintah Git berikut di terminal:
-   git add docs/ROADMAP.md && git commit -m "docs: establish comprehensive 8-phase master roadmap with luxury engine specs" && git push origin main
-4. Laporkan commit hash dan status push remote setelah selesai.
+### INSTRUKSI EKSEKUSI:
+1. Gantikan isi file `C:\Users\Administrator\Documents\WEB MUA\docs\ROADMAP.md` dengan draf terbaru di atas.
+2. Pastikan formatting Markdown tetap rapi dan valid.
+3. Jalankan perintah Git berikut di terminal workspace:
+   ```bash
+   git add docs/ROADMAP.md
+   git commit -m "docs: integrate comprehensive Admin Command Center (/admin) specs into Phase 7 roadmap"
+   git push origin main
