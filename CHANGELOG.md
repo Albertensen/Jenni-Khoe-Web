@@ -5,6 +5,25 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 06:40 — Sinkronisasi Otomatis SPK Digital ke SPK Archive (`/admin/contracts`)
+
+### Added
+- **Otomasi Penyimpanan SPK Archive (`contracts`)**:
+  - `src/app/api/booking/[token]/sign/route.ts`: Menyimpan dan mengarsipkan secara otomatis surat perjanjian kerja (SPK) digital ke tabel `contracts` saat klien menandatangani di form/portal reservasi (`/booking/[token]`).
+  - Menyimpan metadata lengkap: Nomor SPK, ID Booking & Deal, Nama Klien, WhatsApp, Paket Layanan, Tanggal Acara, Venue, Waktu Tanda Tangan, IP Audit, dan data goresan tanda tangan digital (Base64 PNG).
+  - `src/app/api/bookings/route.ts`: Sinkronisasi otomatis dari reservasi Bookings ke `contracts` saat pembuatan atau pembaruan data booking.
+  - `src/app/api/contracts/route.ts`:
+    - Auto-reconciliation untuk memastikan seluruh reservasi yang telah memiliki SPK digital otomatis terarsip dan tidak ada data yang hilang.
+    - Menambahkan endpoint `GET`, `POST`, dan `DELETE` dengan format data komprehensif.
+- **Peningkatan Halaman SPK Archive (`/admin/contracts`)**:
+  - Tampilan luxury bertema Jenni Khoe MUA dengan kartu metrik (Total SPK Terarsip, Sah Ditandatangani, Menunggu TTD).
+  - Kolom pencarian instan (nama klien, WhatsApp, nomor SPK, paket, venue) dan filter status.
+  - Tabel interaktif dengan tautan WhatsApp langsung, badge nomor SPK mono, dan status legal sah.
+  - **Modal Viewer Dokumen SPK Sah**: Menampilkan surat perjanjian kerja lengkap dengan format kop surat studio, klausul kesepakatan resmi, verifikasi digital, stempel resmi Jenni Khoe MUA, dan goresan tanda tangan digital klien.
+  - Fitur cetak / simpan PDF langsung dari browser (`window.print()`).
+
+---
+
 ## 2026-09-12 06:10 — Peningkatan Desain Button Add Deal Manual di Deal Customer
 
 ### Changed

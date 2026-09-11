@@ -160,6 +160,39 @@ export async function POST(
       // Non-blocking: deal update already succeeded
     }
 
+    // 4. Immediately insert/sync to contracts table (SPK Archive)
+    try {
+      const clientIp =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("x-real-ip") ||
+        "127.0.0.1";
+
+      const finalBookingId = deal.booking_id || null;
+
+      await supabase
+        .from("contracts")
+        .upsert(
+          {
+            booking_id: finalBookingId,
+            deal_id: deal.id,
+            spk_number: spkNumber,
+            client_name: deal.name,
+            client_phone: deal.phone,
+            service_package: deal.service_package || "Bridal Makeup Exclusive",
+            event_date: deal.deal_date || now.toISOString().slice(0, 10),
+            venue: deal.venue || "Venue Sesuai Kesepakatan",
+            client_signature_data: signature_data,
+            signed_at: now.toISOString(),
+            signed_ip: clientIp,
+            terms_content: "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.",
+            updated_at: now.toISOString(),
+          },
+          { onConflict: "spk_number" }
+        );
+    } catch (contractErr) {
+      console.error("Warning: Contract archive sync error:", contractErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: "SPK berhasil ditandatangani secara digital dan masuk ke sistem booking",

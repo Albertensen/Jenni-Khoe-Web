@@ -93,6 +93,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: bookingErr.message }, { status: 500 });
     }
 
+        // Sync to contracts table (SPK Archive) if spk_number is present
+    if (body.spk_number) {
+      try {
+        await supabase
+          .from("contracts")
+          .upsert(
+            {
+              booking_id: bookingData.id,
+              spk_number: body.spk_number,
+              client_name: client_name || "Klien",
+              client_phone: client_phone || "-",
+              service_package: service_package || "Bridal Makeup Exclusive",
+              event_date: event_date || new Date().toISOString().slice(0, 10),
+              venue: venue || "Venue Sesuai Kesepakatan",
+              signed_at: body.signed_at || new Date().toISOString(),
+              signed_ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
+              client_signature_data: body.client_signature || null,
+              terms_content: "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "spk_number" }
+          );
+      } catch (cErr) {
+        console.error("Warning: sync contract from booking post error:", cErr);
+      }
+    }
+
     return NextResponse.json({ success: true, data: bookingData });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal error";
@@ -144,6 +171,24 @@ export async function PATCH(req: NextRequest) {
         .from("deal_customers")
         .update(dealUpdates)
         .eq("id", data.deal_id);
+    }
+
+    // Sync to contracts table (SPK Archive) if linked
+    if (data?.spk_number) {
+      try {
+        await supabase
+          .from("contracts")
+          .update({
+            booking_id: data.id,
+            service_package: data.service_package || undefined,
+            event_date: data.event_date || undefined,
+            venue: data.venue || undefined,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("spk_number", data.spk_number);
+      } catch (cErr) {
+        console.error("Warning: sync contract from booking patch error:", cErr);
+      }
     }
 
     return NextResponse.json({ success: true, data });
