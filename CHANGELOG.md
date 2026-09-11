@@ -5,6 +5,19 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 21:00 — Migrate auth & database architecture to Supabase serverless
+
+### Added
+- `supabase_schema.sql` — PostgreSQL DDL schema with RLS for Supabase project
+- `frontend/src/lib/supabase.ts` — lightweight Supabase client initialization helper
+
+### Changed
+- `frontend/src/app/api/login/route.ts` — switched from local Laravel proxy to direct Supabase Auth
+- `frontend/src/middleware.ts` — verified session token via Supabase Auth API
+- `frontend/package.json` — installed `@supabase/supabase-js` and `@supabase/ssr`
+
+---
+
 ## 2026-09-11 20:30 — Fix bootstrap providers and configure Sanctum API guard
 
 ### Fixed
