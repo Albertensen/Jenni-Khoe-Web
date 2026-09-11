@@ -107,8 +107,8 @@ function buildSmartFallback(
 
   const knownSection = knownBullets.length > 0 ? `Data jadwal yang tercatat:\n${knownBullets.join('\n')}\n\n` : '';
 
-  // Contextual progression: if user specified event type or has date+venue
-  if (entities.eventType || (entities.tanggal && entities.venue)) {
+  // 1. If all 3 core schedule fields (tanggal, venue, jam) or eventType are provided
+  if (missing.length === 0 || entities.eventType) {
     let pkgRecommendation = '';
     if (entities.eventType === 'Akad Nikah') {
       pkgRecommendation = 'Untuk acara Akad Nikah, paket favorit kami adalah Intimate / Holy Matrimony (Rp 7.500.000) atau Luxury Royal Bridal (Rp 12.000.000) dengan ketahanan complexion 18 jam.\n\n';
@@ -118,30 +118,25 @@ function buildSmartFallback(
       pkgRecommendation = 'Untuk Prewedding / Lamaran, paket Engagement (Rp 4.500.000) mencakup 1 look glam/natural dan touch-up kit.\n\n';
     }
 
-    if (missing.length === 0 || entities.eventType) {
-      return (
-        `Kabar baik Kak! ${knownSection}` +
-        pkgRecommendation +
-        `Slot riasan privat bersama Kak Jenni Khoe saat ini MASIH TERSEDIA ✨\n\n` +
-        `Untuk mengamankan slot (Lock Date) atau konsultasi privat via WhatsApp resmi Jenni Khoe, Kakak bisa tinggalkan nomor kontak di sini atau langsung hubungi:\n${waUrl}`
-      );
-    }
+    const eventConceptPrompt = (!entities.eventType && missing.length === 0)
+      ? 'Untuk konsep riasannya, apakah untuk acara Akad Nikah, Resepsi, atau Prewedding Kak?\n\n'
+      : '';
+
+    return (
+      `Kabar baik Kak! ${knownSection}` +
+      pkgRecommendation +
+      eventConceptPrompt +
+      `Slot riasan privat bersama Kak Jenni Khoe saat ini MASIH TERSEDIA ✨\n\n` +
+      `Untuk mengamankan slot (Lock Date) atau konsultasi privat via WhatsApp resmi Jenni Khoe, Kakak bisa tinggalkan nomor kontak di sini atau langsung hubungi:\n${waUrl}`
+    );
   }
 
-  if (intent === 'availability_check' || intent === 'booking_intent') {
-    if (missing.length === 0) {
-      return (
-        `Kabar baik Kak! ${knownSection}` +
-        `Slot riasan privat bersama Kak Jenni Khoe saat ini MASIH TERSEDIA ✨\n\n` +
-        `Untuk konsep riasannya, apakah untuk acara Akad Nikah, Resepsi, atau Prewedding Kak?\n\n` +
-        `Kakak juga bisa langsung hold tanggal via WhatsApp resmi di bawah ya:\n${waUrl}`
-      );
-    }
-
-    const missingPrompt = missing.join(' dan ');
+  // 2. If partial schedule details exist, ask ONLY for the missing fields
+  if (entities.tanggal || entities.venue || entities.jam || intent === 'availability_check' || intent === 'booking_intent') {
+    const missingPrompt = missing.length > 0 ? missing.join(' dan ') : 'detail jadwal acara Kakak';
     return (
       `Terima kasih Kak! ${knownSection}` +
-      `Agar kami bisa memastikan slot kosong dan kesiapan tim, boleh dibantu info ${missingPrompt} yang direncanakan ya Kak?\n\n` +
+      `Agar kami bisa memastikan ketersediaan slot dan kesiapan tim, boleh dibantu info ${missingPrompt} yang direncanakan ya Kak?\n\n` +
       `Atau Kakak bisa langsung terhubung ke WhatsApp resmi kami: ${waUrl}`
     );
   }
