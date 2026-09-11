@@ -53,6 +53,29 @@ const STATUS_CONFIG: Record<string, { label: string; badgeClass: string; icon: s
   },
 };
 
+const PAYMENT_METHOD_CONFIG: Record<string, { label: string; badgeClass: string; icon: string }> = {
+  belum_bayar: {
+    label: "Belum Bayar",
+    badgeClass: "bg-red-50 text-red-700 border-red-200 font-semibold",
+    icon: "❌",
+  },
+  transfer: {
+    label: "Transfer BCA",
+    badgeClass: "bg-blue-50 text-blue-800 border-blue-200 font-semibold",
+    icon: "🏦",
+  },
+  qris: {
+    label: "QRIS",
+    badgeClass: "bg-purple-50 text-purple-800 border-purple-200 font-semibold",
+    icon: "📱",
+  },
+  kartu_kredit: {
+    label: "Kartu Kredit",
+    badgeClass: "bg-indigo-50 text-indigo-800 border-indigo-200 font-semibold",
+    icon: "💳",
+  },
+};
+
 export default function AdminDealsPage() {
   const [deals, setDeals] = useState<DealCustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +85,8 @@ export default function AdminDealsPage() {
   const [savedSuccessId, setSavedSuccessId] = useState<number | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [selectedSpkDeal, setSelectedSpkDeal] = useState<DealCustomer | null>(null);
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Local state for inline date/time editing
   const [editForms, setEditForms] = useState<Record<number, { date: string; time: string }>>({});
@@ -143,6 +168,50 @@ export default function AdminDealsPage() {
     }
   };
 
+  const handleConfirmDealPayment = async (
+    deal: DealCustomer,
+    newStatus: "confirmed" | "belum_bayar"
+  ) => {
+    try {
+      setConfirmingPaymentId(deal.id);
+      const res = await fetch("/api/deals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: deal.id,
+          payment_status: newStatus,
+          status: newStatus === "confirmed" ? "dp_paid" : "spk_signed",
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDeals((prev) =>
+          prev.map((d) =>
+            d.id === deal.id
+              ? {
+                  ...d,
+                  payment_status: newStatus,
+                  status: newStatus === "confirmed" ? "dp_paid" : "spk_signed",
+                }
+              : d
+          )
+        );
+        const msg =
+          newStatus === "confirmed"
+            ? `Dana DP klien ${deal.name} terkonfirmasi lunas!`
+            : `Status pembayaran klien ${deal.name} dikembalikan ke belum bayar.`;
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3500);
+      } else {
+        alert(json.message || "Gagal mengubah status pembayaran");
+      }
+    } catch (err) {
+      console.error("Error confirming deal payment:", err);
+    } finally {
+      setConfirmingPaymentId(null);
+    }
+  };
+
   const copyBookingLink = (token: string) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://jenni-khoe-mua.vercel.app";
     const fullUrl = `${origin}/booking/${token}`;
@@ -188,12 +257,30 @@ export default function AdminDealsPage() {
     window.open(waLink, "_blank");
   };
 
+  const getFollowUpPaymentLink = (deal: DealCustomer) => {
+    const cleanPhone = deal.phone.replace(/[^0-9]/g, "");
+    const dateDisplay = deal.deal_date
+      ? new Date(deal.deal_date).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "-";
+    const spkNo = deal.spk_number || "SPK";
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://jenni-khoe-mua.vercel.app";
+    const portalLink = `${origin}/booking/${deal.booking_token}`;
+
+    const message = `Halo Kak ${deal.name}, terima kasih telah menandatangani SPK resmi (No: ${spkNo}) untuk tanggal ${dateDisplay}.\n\nKami menginfokan bahwa Kakak belum menyelesaikan pemilihan metode pembayaran uang muka (DP). Mohon buka kembali portal reservasi Kakak di:\n👉 ${portalLink}\n\nLalu pilih metode pembayaran (Transfer BCA, QRIS, atau Kartu Kredit) untuk mengunci slot tanggal riasan Kakak. Terima kasih! 🙏`;
+
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+  };
+
   const stats = useMemo(() => {
     const total = deals.length;
     const draft = deals.filter((d) => d.status === "draft").length;
     const sent = deals.filter((d) => d.status === "form_sent").length;
     const signed = deals.filter((d) => d.status === "spk_signed").length;
-    const paid = deals.filter((d) => d.status === "dp_paid").length;
+    const paid = deals.filter((d) => d.status === "dp_paid" || d.payment_status === "confirmed").length;
     return { total, draft, sent, signed, paid };
   }, [deals]);
 
@@ -220,7 +307,7 @@ export default function AdminDealsPage() {
             <span>🤝</span> Deal Customer & Penerbitan SPK
           </h2>
           <p className="text-xs text-luxury-deep-slate/70 mt-1">
-            Kelola klien deal dari Prospek CS CRM. Kunci tanggal & jam deal, kirimkan tautan formulir reservasi resmi via WhatsApp, dan pantau tanda tangan SPK digital.
+            Kelola klien deal dari Prospek CS CRM. Kunci tanggal & jam deal, kirimkan tautan formulir reservasi resmi via WhatsApp, dan pantau tanda tangan SPK serta konfirmasi pembayaran DP.
           </p>
         </div>
         <button
@@ -314,8 +401,8 @@ export default function AdminDealsPage() {
                 <th className="py-3.5 px-4">Calon Pengantin & WA</th>
                 <th className="py-3.5 px-4">Tanggal & Jam Deal (Terkunci untuk Klien)</th>
                 <th className="py-3.5 px-4">Lokasi / Venue Acara</th>
-                <th className="py-3.5 px-4">Status & SPK</th>
-                <th className="py-3.5 px-4 text-center">Aksi Booking & WA</th>
+                <th className="py-3.5 px-4">Status, SPK & Pembayaran</th>
+                <th className="py-3.5 px-4 text-center">Aksi Booking & Verifikasi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -329,6 +416,16 @@ export default function AdminDealsPage() {
                 const edit = editForms[deal.id] || { date: "", time: "" };
                 const isSaving = savingId === deal.id;
                 const isSaved = savedSuccessId === deal.id;
+                const isConfirming = confirmingPaymentId === deal.id;
+
+                const isConfirmed = deal.payment_status === "confirmed" || deal.status === "dp_paid";
+                const methodConfig =
+                  PAYMENT_METHOD_CONFIG[deal.payment_method || "belum_bayar"] ||
+                  PAYMENT_METHOD_CONFIG.belum_bayar || {
+                    label: "Belum Bayar",
+                    badgeClass: "bg-red-50 text-red-700 border-red-200 font-semibold",
+                    icon: "❌",
+                  };
 
                 return (
                   <tr key={deal.id} className="hover:bg-gray-50/70 transition-colors">
@@ -405,37 +502,98 @@ export default function AdminDealsPage() {
                       )}
                     </td>
 
-                    {/* Status & SPK */}
+                    {/* Status & SPK & Pembayaran */}
                     <td className="py-3.5 px-4 align-top whitespace-nowrap">
-                      <div className="space-y-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] border ${statusInfo.badgeClass}`}
-                        >
-                          <span>{statusInfo.icon}</span>
-                          <span>{statusInfo.label}</span>
-                        </span>
+                      <div className="space-y-2">
+                        {/* Status Deal */}
+                        <div>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] border ${statusInfo.badgeClass}`}
+                          >
+                            <span>{statusInfo.icon}</span>
+                            <span>{statusInfo.label}</span>
+                          </span>
+                        </div>
 
+                        {/* SPK Info */}
                         {deal.spk_number && (
-                          <p className="text-[11px] font-mono text-luxury-charcoal font-semibold">
-                            No: {deal.spk_number}
-                          </p>
+                          <div className="space-y-0.5">
+                            <p className="text-[11px] font-mono text-luxury-charcoal font-semibold">
+                              No: {deal.spk_number}
+                            </p>
+                            {deal.client_signature && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSpkDeal(deal)}
+                                className="text-[11px] text-luxury-rose-gold font-medium hover:underline block cursor-pointer"
+                              >
+                                📄 Lihat Tanda Tangan SPK ↗
+                              </button>
+                            )}
+                          </div>
                         )}
 
-                        {deal.client_signature && (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedSpkDeal(deal)}
-                            className="text-[11px] text-luxury-rose-gold font-medium hover:underline block cursor-pointer"
-                          >
-                            📄 Lihat Tanda Tangan SPK ↗
-                          </button>
+                        {/* Status Pembayaran */}
+                        {deal.terms_accepted && (
+                          <div className="pt-1">
+                            {isConfirmed ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                                <span>✅</span> Dana Masuk (Lunas)
+                              </span>
+                            ) : deal.payment_method && deal.payment_method !== "belum_bayar" ? (
+                              <div className="space-y-0.5">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] border ${methodConfig.badgeClass}`}
+                                >
+                                  <span>{methodConfig.icon}</span>
+                                  <span>{methodConfig.label}</span>
+                                </span>
+                                <p className="text-[9px] text-amber-700 font-medium">
+                                  ⏳ Menunggu Verifikasi Admin
+                                </p>
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] bg-red-50 text-red-700 border border-red-200 font-semibold">
+                                <span>❌</span> Belum Bayar DP
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>
 
                     {/* Aksi Booking & WA */}
                     <td className="py-3.5 px-4 align-top text-center whitespace-nowrap">
-                      <div className="flex flex-col gap-1.5 items-stretch">
+                      <div className="flex flex-col gap-1.5 items-stretch min-w-[155px]">
+                        {/* Tombol Confirm Dana Masuk jika sudah SPK & belum confirmed */}
+                        {deal.terms_accepted && !isConfirmed && (
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmDealPayment(deal, "confirmed")}
+                            disabled={isConfirming}
+                            className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-xs hover:shadow-md cursor-pointer disabled:opacity-50"
+                            title="Konfirmasi bahwa bukti pembayaran telah dicek dan dana benar telah masuk"
+                          >
+                            <span>✓</span>
+                            <span>{isConfirming ? "Menyimpan..." : "Confirm Dana Masuk"}</span>
+                          </button>
+                        )}
+
+                        {/* Jika belum bayar dan sudah SPK -> Tombol Follow Up WA */}
+                        {deal.terms_accepted && !isConfirmed && (!deal.payment_method || deal.payment_method === "belum_bayar") && (
+                          <a
+                            href={getFollowUpPaymentLink(deal)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-all shadow-2xs cursor-pointer"
+                            title="Follow up customer via WhatsApp agar segera memilih metode bayar DP"
+                          >
+                            <span>📱</span>
+                            <span>Follow Up WA (Belum Bayar)</span>
+                          </a>
+                        )}
+
+                        {/* Kirim Form WA */}
                         <button
                           type="button"
                           onClick={() => handleSendFormViaWhatsApp(deal)}
@@ -501,7 +659,7 @@ export default function AdminDealsPage() {
                 <h3 className="font-serif font-bold text-luxury-charcoal text-base">
                   Surat Perjanjian Kerja (SPK) Sah
                 </h3>
-                <p className="text-xs text-gray-500">{selectedSpkDeal.spk_number || "SPK-JKM"}</p>
+                <p className="text-xs text-gray-500 font-mono">{selectedSpkDeal.spk_number || "SPK-JKM"}</p>
               </div>
               <button
                 onClick={() => setSelectedSpkDeal(null)}
@@ -557,6 +715,20 @@ export default function AdminDealsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-luxury-charcoal text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-fade-in border border-luxury-champagne/40">
+          <span className="text-xl">🎉</span>
+          <p className="text-xs font-semibold text-white">{toastMsg}</p>
+          <button
+            onClick={() => setToastMsg(null)}
+            className="ml-3 text-gray-400 hover:text-white text-xs cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>

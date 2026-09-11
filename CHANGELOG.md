@@ -5,6 +5,26 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 05:00 — Otomatisasi Masuk Booking, Trigger Pembayaran Klien, & Konfirmasi Dana Masuk
+
+### Added
+- **Sinkronisasi Otomatis SPK ke Bookings**:
+  - Saat klien menandatangani SPK digital pada `/booking/[token]`, sistem langsung membuat/menghubungkan data ke tabel `bookings` dan `clients`.
+  - Reservasi langsung muncul di menu admin `/admin/bookings` dengan nomor SPK, tautan bukti tanda tangan digital, dan status awal `belum_bayar`.
+- **Trigger Interaktif Metode Pembayaran di Portal Klien (Step 3)**:
+  - Nomor rekening bank tidak langsung ditampilkan secara terbuka kepada klien.
+  - Klien diwajibkan memilih opsi metode pembayaran: **Transfer Bank BCA**, **QRIS**, atau **Kartu Kredit**.
+  - Pilihan metode langsung memicu pembaruan status pembayaran di database (`payment_method`: `transfer`/`qris`/`kartu_kredit`, `payment_status`: `menunggu_konfirmasi`).
+  - Rincian nomor rekening (BCA `5271-8902-31` a/n JENNI KHOE) dan tombol WhatsApp konfirmasi bukti transfer hanya terbuka setelah tombol metode diklik.
+- **Label & Aksi Admin "Belum Bayar" & Follow Up WhatsApp**:
+  - Jika klien telah menandatangani SPK namun belum memilih metode/melakukan pembayaran, sistem memberikan label merah `❌ Belum Bayar`.
+  - Admin memiliki tombol khusus **"Follow Up WA (Belum Bayar)"** pada menu `/admin/bookings` dan `/admin/deals` untuk mem-follow up klien secara personal via WhatsApp dengan pesan otomatis.
+- **Tombol Aksi Admin "Confirm Dana Masuk"**:
+  - Pada baris klien yang telah memilih metode pembayaran (Transfer BCA, QRIS, Kartu Kredit), admin disediakan tombol **"✓ Confirm Dana Masuk"**.
+  - Tombol ini ditekan setelah admin mengecek mutasi bank/bukti transfer, langsung memperbarui status menjadi `✅ Dana Masuk (Confirmed)` serta sinkron di tabel `bookings` dan `deal_customers`.
+
+---
+
 ## 2026-09-12 04:30 — Modul Deal Customer, SPK Digital, dan Portal Booking Mandiri
 
 ### Added

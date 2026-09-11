@@ -17,6 +17,8 @@ interface DealData {
   terms_accepted: boolean;
   client_signature: string | null;
   signed_at: string | null;
+  payment_method?: string | null;
+  payment_status?: string | null;
 }
 
 export default function CustomerBookingPage({
@@ -38,7 +40,6 @@ export default function CustomerBookingPage({
   const [phone, setPhone] = useState("");
   const [venue, setVenue] = useState("");
   const [email, setEmail] = useState("");
-  const [notes, setNotes] = useState("");
   const [savingStep1, setSavingStep1] = useState(false);
 
   // Step 2 SPK States
@@ -48,6 +49,8 @@ export default function CustomerBookingPage({
   const [spkError, setSpkError] = useState<string | null>(null);
 
   // Step 3 Payment States
+  const [selectedMethod, setSelectedMethod] = useState<"belum_bayar" | "transfer" | "qris" | "kartu_kredit">("belum_bayar");
+  const [updatingPayment, setUpdatingPayment] = useState(false);
   const [copiedBca, setCopiedBca] = useState(false);
 
   useEffect(() => {
@@ -62,6 +65,15 @@ export default function CustomerBookingPage({
           setPhone(json.data.phone || "");
           setVenue(json.data.venue || "");
           setEmail(json.data.email || "");
+
+          if (
+            json.data.payment_method &&
+            ["transfer", "qris", "kartu_kredit"].includes(json.data.payment_method)
+          ) {
+            setSelectedMethod(json.data.payment_method);
+          } else {
+            setSelectedMethod("belum_bayar");
+          }
 
           // If already signed, jump directly to step 3
           if (json.data.status === "spk_signed" || json.data.status === "dp_paid") {
@@ -157,6 +169,31 @@ export default function CustomerBookingPage({
     }
   };
 
+  // Trigger payment method selection
+  const handleSelectPaymentMethod = async (method: "transfer" | "qris" | "kartu_kredit") => {
+    try {
+      setUpdatingPayment(true);
+      const res = await fetch(`/api/booking/${token}/payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payment_method: method }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSelectedMethod(method);
+        if (json.data) {
+          setDeal(json.data);
+        }
+      } else {
+        alert(json.message || "Gagal memilih metode pembayaran");
+      }
+    } catch (err) {
+      console.error("Payment method error:", err);
+    } finally {
+      setUpdatingPayment(false);
+    }
+  };
+
   const copyBcaAccount = () => {
     navigator.clipboard.writeText("5271890231");
     setCopiedBca(true);
@@ -173,7 +210,14 @@ export default function CustomerBookingPage({
         })
       : "-";
 
-    const msg = `Halo Kak Jenni Khoe, saya ${name} (${phone}) telah menandatangani SPK digital resmi (No. ${spkNo}) untuk jadwal acara tanggal ${dateFormatted} jam ${deal?.deal_time || "-"} di ${venue}.\n\nBerikut saya lampirkan bukti pembayaran transfer DP reservasi privat saya. Mohon dicek dan dikonfirmasi kuitansi resminya ya Kak. Terima kasih! ✨`;
+    const methodName =
+      selectedMethod === "transfer"
+        ? "Transfer Bank BCA"
+        : selectedMethod === "qris"
+        ? "QRIS / E-Wallet"
+        : "Kartu Kredit";
+
+    const msg = `Halo Kak Jenni Khoe, saya ${name} (${phone}) telah menandatangani SPK digital resmi (No. ${spkNo}) untuk jadwal acara ${dateFormatted} jam ${deal?.deal_time || "-"} di ${venue}.\n\nSaya telah memilih metode pembayaran DP: *${methodName}*. Berikut saya lampirkan bukti pembayarannya ya Kak. Mohon dikonfirmasi dan diverifikasi kuitansi resminya. Terima kasih! ✨`;
 
     return `https://wa.me/6281280775443?text=${encodeURIComponent(msg)}`;
   };
@@ -574,7 +618,7 @@ export default function CustomerBookingPage({
           </div>
         )}
 
-        {/* STEP 3: PEMBAYARAN DP & KONFIRMASI WA */}
+        {/* STEP 3: PEMBAYARAN DP & TRIGGER METODE PEMBAYARAN */}
         {step === 3 && (
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-luxury-champagne/50 shadow-md space-y-6 animate-fade-in">
             {/* Header Sukses */}
@@ -583,19 +627,19 @@ export default function CustomerBookingPage({
                 ✓
               </div>
               <h2 className="font-serif text-xl sm:text-2xl font-bold text-luxury-charcoal">
-                SPK Berhasil Ditandatangani!
+                SPK Resmi Sah & Tersimpan di Sistem
               </h2>
               {deal.spk_number && (
                 <p className="text-xs font-mono font-bold text-luxury-rose-gold bg-luxury-rose-gold/10 inline-block px-3 py-1 rounded-full">
-                  Nomor Kontrak: {deal.spk_number}
+                  Nomor SPK: {deal.spk_number}
                 </p>
               )}
               <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-                Terima kasih Kak <strong>{name}</strong>. Satu langkah terakhir: silakan selesaikan pembayaran uang muka (DP 50%) untuk memvalidasi dan mengunci slot riasan privat Anda secara permanen.
+                Terima kasih Kak <strong>{name}</strong>. Jadwal telah dicatat di sistem booking kami. Silakan tentukan metode pembayaran uang muka (DP 50%) untuk mengunci tanggal acara secara permanen.
               </p>
             </div>
 
-            {/* Ringkasan Kontrak Sah */}
+            {/* Ringkasan Reservasi */}
             <div className="bg-[#FCFAF7] border border-luxury-champagne/60 rounded-2xl p-4 sm:p-5 text-xs text-gray-800 space-y-2">
               <p className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">
                 RINGKASAN RESERVASI TERDAFTAR
@@ -624,49 +668,240 @@ export default function CustomerBookingPage({
               </div>
             </div>
 
-            {/* Rekening Pembayaran Resmi */}
-            <div className="bg-blue-50/50 border border-blue-200/80 rounded-2xl p-5 space-y-3">
-              <p className="text-[11px] font-semibold text-blue-900 uppercase tracking-wider">
-                🏦 REKENING RESMI PEMBAYARAN DP (BCA)
-              </p>
-              <div className="bg-white p-4 rounded-xl border border-blue-100 flex items-center justify-between gap-4">
+            {/* Pilihan Metode Pembayaran (Triggered by Button — Rekening tidak langsung muncul) */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-gray-400">Bank Central Asia (BCA)</p>
-                  <p className="font-mono text-xl font-bold text-gray-800 tracking-wider">
-                    5271 8902 31
-                  </p>
-                  <p className="text-xs font-medium text-gray-600 mt-0.5">
-                    a/n <strong>JENNI KHOE</strong>
+                  <h3 className="font-serif font-bold text-sm text-luxury-charcoal">
+                    Pilih Metode Pembayaran DP
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    Pilih metode di bawah untuk membuka rincian nomor rekening atau panduan pembayaran:
                   </p>
                 </div>
+                {selectedMethod !== "belum_bayar" && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod("belum_bayar")}
+                    className="text-[11px] text-luxury-rose-gold hover:underline cursor-pointer"
+                  >
+                    Ganti Metode ↻
+                  </button>
+                )}
+              </div>
+
+              {/* 3 Tombol Opsi Pembayaran */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 1. Transfer Bank */}
                 <button
                   type="button"
-                  onClick={copyBcaAccount}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                  onClick={() => handleSelectPaymentMethod("transfer")}
+                  disabled={updatingPayment}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                    selectedMethod === "transfer"
+                      ? "border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-500"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
                 >
-                  {copiedBca ? "✓ Tersalin!" : "📋 Salin Rekening"}
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-2xl">🏦</span>
+                    {selectedMethod === "transfer" && (
+                      <span className="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Terpilih
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-gray-900">Transfer Bank (BCA)</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">
+                      m-Banking, KlikBCA, atau ATM
+                    </p>
+                  </div>
+                </button>
+
+                {/* 2. QRIS */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPaymentMethod("qris")}
+                  disabled={updatingPayment}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                    selectedMethod === "qris"
+                      ? "border-purple-600 bg-purple-50/50 shadow-xs ring-1 ring-purple-500"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-2xl">📱</span>
+                    {selectedMethod === "qris" && (
+                      <span className="text-[10px] bg-purple-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Terpilih
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-gray-900">QRIS / E-Wallet</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">
+                      GoPay, OVO, Dana, ShopeePay
+                    </p>
+                  </div>
+                </button>
+
+                {/* 3. Kartu Kredit */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPaymentMethod("kartu_kredit")}
+                  disabled={updatingPayment}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                    selectedMethod === "kartu_kredit"
+                      ? "border-indigo-600 bg-indigo-50/50 shadow-xs ring-1 ring-indigo-500"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-2xl">💳</span>
+                    {selectedMethod === "kartu_kredit" && (
+                      <span className="text-[10px] bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full">
+                        Terpilih
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs text-gray-900">Kartu Kredit</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">
+                      Visa, Mastercard, Online
+                    </p>
+                  </div>
                 </button>
               </div>
-              <p className="text-[11px] text-gray-500 leading-relaxed italic">
-                * Harap cantumkan berita transfer: <strong className="font-mono">DP {name.slice(0, 10)} {deal.deal_date ? deal.deal_date.slice(5) : ""}</strong>.
-              </p>
             </div>
 
-            {/* Tombol Konfirmasi WhatsApp */}
-            <div className="space-y-2">
-              <a
-                href={getWhatsAppPaymentLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>💬</span>
-                <span>Kirim Bukti Transfer ke WhatsApp Resmi Jenni Khoe ✨</span>
-              </a>
-              <p className="text-[10px] text-center text-gray-400">
-                Admin akan langsung memverifikasi transfer dan menerbitkan kuitansi tanda terima resmi.
-              </p>
-            </div>
+            {/* JIKA BELUM PILIH METODE (Status: Belum Bayar) */}
+            {selectedMethod === "belum_bayar" && (
+              <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3">
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <p className="font-bold">Status Pembayaran: Belum Memilih Metode</p>
+                  <p className="text-[11px] text-amber-800/80 mt-0.5">
+                    Klik salah satu tombol opsi pembayaran di atas (Transfer Bank, QRIS, atau Kartu Kredit) untuk melihat instruksi dan nomor rekening pembayaran uang muka Anda.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* JIKA MEMILIH TRANSFER BANK (BCA) -> REKENING BARU DITAMPILKAN */}
+            {selectedMethod === "transfer" && (
+              <div className="bg-blue-50/60 border border-blue-200/90 rounded-2xl p-5 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-blue-900 uppercase tracking-wider">
+                    🏦 REKENING RESMI PEMBAYARAN DP (BCA)
+                  </p>
+                  <span className="text-[10px] text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md font-medium">
+                    Metode: Transfer Bank
+                  </span>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-blue-100 flex items-center justify-between gap-4 shadow-2xs">
+                  <div>
+                    <p className="text-[11px] text-gray-400">Bank Central Asia (BCA)</p>
+                    <p className="font-mono text-xl font-bold text-gray-900 tracking-wider">
+                      5271 8902 31
+                    </p>
+                    <p className="text-xs font-medium text-gray-600 mt-0.5">
+                      a/n <strong>JENNI KHOE</strong>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyBcaAccount}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                  >
+                    {copiedBca ? "✓ Tersalin!" : "📋 Salin Rekening"}
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-gray-600 leading-relaxed italic">
+                  * Harap cantumkan berita transfer: <strong className="font-mono">DP {name.slice(0, 10)} {deal.deal_date ? deal.deal_date.slice(5) : ""}</strong>.
+                </p>
+
+                <a
+                  href={getWhatsAppPaymentLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>💬</span>
+                  <span>Kirim Bukti Transfer BCA ke WhatsApp Resmi Jenni Khoe ✨</span>
+                </a>
+              </div>
+            )}
+
+            {/* JIKA MEMILIH QRIS */}
+            {selectedMethod === "qris" && (
+              <div className="bg-purple-50/60 border border-purple-200/90 rounded-2xl p-5 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-purple-900 uppercase tracking-wider">
+                    📱 PEMBAYARAN VIA QRIS / E-WALLET
+                  </p>
+                  <span className="text-[10px] text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-md font-medium">
+                    Metode: QRIS
+                  </span>
+                </div>
+
+                <div className="bg-white p-5 rounded-xl border border-purple-100 text-center space-y-3 shadow-2xs">
+                  <div className="w-40 h-40 bg-gray-100 border-2 border-dashed border-purple-300 rounded-xl mx-auto flex flex-col items-center justify-center p-3 text-purple-900">
+                    <span className="text-3xl">🔲</span>
+                    <span className="text-[10px] font-bold mt-1">QRIS JENNI KHOE</span>
+                    <span className="text-[9px] text-gray-500">NMID: ID102030405060</span>
+                  </div>
+                  <p className="text-xs text-gray-700 font-medium">
+                    Scan QRIS di atas menggunakan m-BCA, GoPay, OVO, Dana, ShopeePay, atau aplikasi QRIS lainnya.
+                  </p>
+                </div>
+
+                <a
+                  href={getWhatsAppPaymentLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>💬</span>
+                  <span>Kirim Bukti Pembayaran QRIS ke WhatsApp Resmi Jenni Khoe ✨</span>
+                </a>
+              </div>
+            )}
+
+            {/* JIKA MEMILIH KARTU KREDIT */}
+            {selectedMethod === "kartu_kredit" && (
+              <div className="bg-indigo-50/60 border border-indigo-200/90 rounded-2xl p-5 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
+                    💳 PEMBAYARAN VIA KARTU KREDIT / DEBIT ONLINE
+                  </p>
+                  <span className="text-[10px] text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded-md font-medium">
+                    Metode: Kartu Kredit
+                  </span>
+                </div>
+
+                <div className="bg-white p-4 rounded-xl border border-indigo-100 space-y-2 shadow-2xs text-xs text-gray-700">
+                  <p className="font-semibold text-indigo-950">
+                    Tautan Pembayaran Invoice Digital Aman (3D Secure)
+                  </p>
+                  <p className="text-[11px] text-gray-600 leading-relaxed">
+                    Pembayaran kartu kredit diproses melalui invoice digital resmi Jenni Khoe MUA. Silakan klik tombol di bawah untuk meminta tautan pembayaran invoice melalui WhatsApp kami.
+                  </p>
+                </div>
+
+                <a
+                  href={getWhatsAppPaymentLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>💬</span>
+                  <span>Minta Invoice Pembayaran Kartu Kredit via WhatsApp ✨</span>
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -153,7 +153,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = getServiceSupabase();
     const body = await req.json();
 
-    const { id, deal_date, deal_time, venue, status, service_package, admin_notes } = body;
+    const { id, deal_date, deal_time, venue, status, service_package, admin_notes, payment_status, payment_method } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, message: "ID Deal wajib disertakan" }, { status: 400 });
@@ -169,6 +169,12 @@ export async function PATCH(req: NextRequest) {
     if (status !== undefined) updates.status = status;
     if (service_package !== undefined) updates.service_package = service_package;
     if (admin_notes !== undefined) updates.admin_notes = admin_notes;
+    if (payment_status !== undefined) updates.payment_status = payment_status;
+    if (payment_method !== undefined) updates.payment_method = payment_method;
+
+    if (payment_status === "confirmed") {
+      updates.status = "dp_paid";
+    }
 
     const { data, error } = await supabase
       .from("deal_customers")
@@ -179,6 +185,23 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+
+    // Bidirectional sync to bookings table
+    try {
+      const bookingUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (payment_status !== undefined) bookingUpdates.payment_status = payment_status;
+      if (payment_method !== undefined) bookingUpdates.payment_method = payment_method;
+      if (payment_status === "confirmed") bookingUpdates.status = "confirmed";
+      if (deal_date !== undefined) bookingUpdates.event_date = deal_date;
+      if (venue !== undefined) bookingUpdates.venue = venue;
+
+      await supabase
+        .from("bookings")
+        .update(bookingUpdates)
+        .eq("deal_id", id);
+    } catch (bookingErr) {
+      console.error("Sync error to bookings from deals PATCH:", bookingErr);
     }
 
     return NextResponse.json({ success: true, data });
