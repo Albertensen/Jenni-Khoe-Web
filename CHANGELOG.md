@@ -5,6 +5,34 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 04:30 — Modul Deal Customer, SPK Digital, dan Portal Booking Mandiri
+
+### Added
+- **Database Supabase `deal_customers`**:
+  - Tabel khusus untuk menampung klien yang telah deal dari CRM, mencakup tanggal & jam deal terkunci, lokasi venue, token unik booking, nomor SPK, persetujuan T&C, dan tanda tangan digital klien.
+- **Tombol "Jadikan Deal" di Prospek CS CRM (`/admin/ai-leads`)**:
+  - Tombol pada kolom Aksi Prospek untuk memindahkan klien langsung ke database Deal Customer dengan status lead tertutup (`closed`).
+  - Notifikasi toast sukses dengan tautan langsung menuju menu Deal Customer.
+- **Menu & Halaman Admin Baru: Deal Customer (`/admin/deals`)**:
+  - Penguncian Jadwal: Form inline untuk admin memasukkan/mengubah tanggal dan jam deal yang otomatis mengunci form customer.
+  - Tombol "Kirim Form via WA": Membuat draft pesan WhatsApp otomatis berisi tautan unik formulir reservasi klien (`/booking/[token]`).
+  - Pelacakan progress reservasi multi-tahap (`draft` -> `form_sent` -> `form_submitted` -> `spk_signed` -> `dp_paid`).
+  - Modal pratinjau SPK sah dan tanda tangan digital klien.
+- **Portal Booking Mandiri Klien (`/booking/[token]`)**:
+  - **Langkah 1 (Formulir Reservasi)**: Pengisian nama, nomor HP, dan lokasi/venue acara. Tanggal dan jam acara berstatus *read-only terkunci* sesuai pengaturan admin.
+  - **Langkah 2 (T&C & SPK Digital)**: Dokumen Surat Perjanjian Kerja resmi Jenni Khoe MUA dengan klausul DP 50%, pelunasan H-7, kebijakan pembatalan/reschedule, dan kanvas tanda tangan digital interaktif.
+  - **Langkah 3 (Pembayaran DP)**: Instruksi transfer Bank BCA (`5271-8902-31` a/n JENNI KHOE) dilengkapi tombol salin rekening dan tombol WhatsApp kirim bukti transfer otomatis.
+- **Endpoint API**:
+  - `GET`, `POST`, `PATCH /api/deals`
+  - `GET`, `POST /api/booking/[token]`
+  - `POST /api/booking/[token]/sign`
+  - `POST /api/booking/[token]/payment`
+
+### Removed
+- Menghapus menu navigasi, kartu statistik dashboard, dan halaman `/admin/inquiries` yang sudah tidak terpakai.
+
+---
+
 ## 2026-09-12 03:45 — Penyatuan Kanal "Kalender Slot" & Penghapusan Label "Cek Tanggal"
 
 ### Changed

@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/inquiries", label: "Inquiries", icon: "📋" },
+  { href: "/admin/ai-leads", label: "Prospek CS CRM", icon: "🎯" },
+  { href: "/admin/deals", label: "Deal Customer", icon: "🤝" },
   { href: "/admin/bookings", label: "Bookings", icon: "📅" },
   { href: "/admin/schedules", label: "Calendar", icon: "🗓️" },
   { href: "/admin/contracts", label: "SPK Archive", icon: "📄" },
   { href: "/admin/payments", label: "Payments", icon: "💰" },
   { href: "/admin/portfolio", label: "Portfolio CMS", icon: "🖼️" },
-  { href: "/admin/ai-leads", label: "Prospek CS CRM", icon: "🎯" },
   { href: "/admin/ai-preset", label: "CS AI Preset", icon: "⚙️" },
 ];
 

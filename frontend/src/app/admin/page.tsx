@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 
 
 interface DashboardStats {
-  total_inquiries: number;
   total_bookings: number;
   pending_bookings: number;
   confirmed_bookings: number;
@@ -35,7 +34,6 @@ export default function AdminDashboard() {
   }
 
   const s = stats || {
-    total_inquiries: 0,
     total_bookings: 0,
     pending_bookings: 0,
     confirmed_bookings: 0,
@@ -50,7 +48,6 @@ export default function AdminDashboard() {
         <p className="text-sm text-gray-500 mt-1">Ringkasan bisnis Jenni Khoe MUA</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard label="Total Inquiries" value={s.total_inquiries} color="blue" />
         <StatCard label="Total Bookings" value={s.total_bookings} color="green" />
         <StatCard label="Pending" value={s.pending_bookings} color="amber" />
         <StatCard label="Confirmed" value={s.confirmed_bookings} color="emerald" />

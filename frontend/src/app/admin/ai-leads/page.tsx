@@ -109,6 +109,41 @@ export default function AiLeadsPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
+  const [movingDealId, setMovingDealId] = useState<number | null>(null);
+  const [dealToast, setDealToast] = useState<{ message: string; token?: string } | null>(null);
+
+  const handleMoveToDeal = async (lead: AiLead) => {
+    try {
+      setMovingDealId(lead.id);
+      const res = await fetch("/api/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lead_id: lead.id,
+          name: lead.name,
+          phone: lead.phone,
+          deal_date: lead.schedule_date,
+          deal_time: lead.schedule_time || "06:00 WIB",
+          venue: lead.schedule_venue,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDealToast({
+          message: `Klien "${lead.name}" berhasil masuk ke Deal Customer!`,
+          token: json.data?.booking_token,
+        });
+        setTimeout(() => setDealToast(null), 6000);
+        fetchLeads();
+      } else {
+        alert(json.message || "Gagal memindahkan lead ke Deal");
+      }
+    } catch (err) {
+      console.error("Error moving lead to deal:", err);
+    } finally {
+      setMovingDealId(null);
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -555,16 +590,29 @@ export default function AiLeadsPage() {
 
                     {/* Aksi Prospek Follow Up */}
                     <td className="py-3.5 px-4 align-top text-center">
-                      <a
-                        href={getWhatsAppFollowUpLink(lead)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-all shadow-xs hover:shadow-md cursor-pointer whitespace-nowrap"
-                        title="Chat WA dengan draft pesan otomatis sesuai tahap closing"
-                      >
-                        <span>💬</span>
-                        <span>Chat WA</span>
-                      </a>
+                      <div className="flex flex-col gap-1.5 items-stretch min-w-[125px]">
+                        <a
+                          href={getWhatsAppFollowUpLink(lead)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-all shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap"
+                          title="Chat WA dengan draft pesan otomatis sesuai tahap closing"
+                        >
+                          <span>💬</span>
+                          <span>Chat WA</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleMoveToDeal(lead)}
+                          disabled={movingDealId === lead.id}
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-luxury-rose-gold hover:bg-luxury-rose-gold/90 text-white font-medium text-xs transition-all shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap disabled:opacity-50"
+                          title="Pindahkan klien ke menu Deal Customer untuk input jadwal dan kirim form SPK"
+                        >
+                          <span>🤝</span>
+                          <span>{movingDealId === lead.id ? "Memproses..." : "Jadikan Deal"}</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -693,6 +741,28 @@ export default function AiLeadsPage() {
           );
         })()}
       </div>
+
+      {/* Floating Toast Notification */}
+      {dealToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-luxury-charcoal text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-fade-in border border-luxury-champagne/40">
+          <span className="text-xl">🎉</span>
+          <div>
+            <p className="text-xs font-semibold text-white">{dealToast.message}</p>
+            <a
+              href="/admin/deals"
+              className="text-[11px] text-luxury-champagne hover:underline font-medium mt-0.5 inline-block"
+            >
+              Buka menu Deal Customer sekarang ↗
+            </a>
+          </div>
+          <button
+            onClick={() => setDealToast(null)}
+            className="ml-3 text-gray-400 hover:text-white text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
