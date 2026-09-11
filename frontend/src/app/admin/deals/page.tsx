@@ -341,10 +341,18 @@ export default function AdminDealsPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-luxury-charcoal text-white rounded-xl hover:bg-black transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-semibold tracking-wide text-white rounded-xl bg-gradient-to-r from-luxury-rose-gold-dark to-luxury-rose-gold hover:from-[#8f4d57] hover:to-luxury-rose-gold-dark border border-luxury-rose-gold/40 shadow-xs hover:shadow-md active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
           >
-            <span>+</span>
-            <span>Tambah Deal Manual</span>
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>Add Deal Manual</span>
           </button>
 
           <button
@@ -653,7 +661,7 @@ export default function AdminDealsPage() {
                   <td colSpan={4} className="py-12 text-center text-gray-400">
                     <p className="text-sm font-medium">Tidak ada Deal Customer aktif</p>
                     <p className="text-xs mt-1">
-                      Klik tombol <strong>"+ Tambah Deal Manual"</strong> di atas atau jadikan prospek dari menu{" "}
+                      Klik tombol <strong>"Add Deal Manual"</strong> di atas atau jadikan prospek dari menu{" "}
                       <a
                         href="/admin/ai-leads"
                         className="text-luxury-rose-gold underline font-medium"
@@ -678,7 +686,7 @@ export default function AdminDealsPage() {
               <div>
                 <h3 className="font-serif font-bold text-luxury-charcoal text-base flex items-center gap-1.5">
                   <span>✍️</span>
-                  <span>Tambah Deal Manual oleh Admin</span>
+                  <span>Add Deal Manual</span>
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Input customer yang datang langsung via WhatsApp pribadi / rekomendasi luar website.
@@ -827,7 +835,7 @@ export default function AdminDealsPage() {
                 <button
                   type="submit"
                   disabled={isSubmittingManual}
-                  className="px-5 py-2 text-xs font-semibold bg-luxury-charcoal hover:bg-black text-white rounded-xl transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 text-xs font-semibold bg-gradient-to-r from-luxury-rose-gold-dark to-luxury-rose-gold hover:from-[#8f4d57] hover:to-luxury-rose-gold-dark text-white rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingManual ? "Menyimpan..." : "Buat Deal Customer"}
                 </button>

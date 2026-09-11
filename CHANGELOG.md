@@ -5,6 +5,17 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 06:10 — Peningkatan Desain Button Add Deal Manual di Deal Customer
+
+### Changed
+- **Penyempurnaan Tombol Add Deal Manual (`/admin/deals`)**:
+  - Mengubah teks tombol dari "+ Tambah Deal Manual" menjadi **"Add Deal Manual"**.
+  - Mengubah warna tombol dari hitam (`bg-luxury-charcoal`) menjadi palet luxury rose-gold khas Jenni Khoe MUA (`bg-gradient-to-r from-luxury-rose-gold-dark to-luxury-rose-gold` dengan border & shadow elegan).
+  - Menyesuaikan proporsi ukuran dan padding (`px-5 py-2.5`, SVG plus icon presisi, efek hover halus) agar terlihat proporsional dan mewah di samping tombol Refresh.
+  - Memperbarui tombol submit modal pembuatan deal agar senada dengan warna brand rose-gold.
+
+---
+
 ## 2026-09-12 05:45 — Penyempurnaan Deal Customer Manual, Paket Makeup Editable, & Filter Alur Sukses
 
 ### Changed
