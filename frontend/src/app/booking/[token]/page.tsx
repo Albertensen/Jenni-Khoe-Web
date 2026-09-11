@@ -19,6 +19,7 @@ interface DealData {
   signed_at: string | null;
   payment_method?: string | null;
   payment_status?: string | null;
+  spk_tnc?: { title: string; content: string } | null;
 }
 
 export default function CustomerBookingPage({
@@ -43,6 +44,7 @@ export default function CustomerBookingPage({
   const [savingStep1, setSavingStep1] = useState(false);
 
   // Step 2 SPK States
+  const [spkTnc, setSpkTnc] = useState<{ title: string; content: string } | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [signing, setSigning] = useState(false);
@@ -61,6 +63,9 @@ export default function CustomerBookingPage({
         const json = await res.json();
         if (json.success && json.data) {
           setDeal(json.data);
+          if (json.data.spk_tnc) {
+            setSpkTnc(json.data.spk_tnc);
+          }
           setName(json.data.name || "");
           setPhone(json.data.phone || "");
           setVenue(json.data.venue || "");
@@ -151,6 +156,7 @@ export default function CustomerBookingPage({
         body: JSON.stringify({
           signature_data: signatureData,
           terms_accepted: true,
+          terms_content: spkTnc?.content || null,
         }),
       });
       const json = await res.json();
@@ -552,26 +558,34 @@ export default function CustomerBookingPage({
                 </p>
               </div>
 
-              {/* Klausul T&C */}
+              {/* Klausul T&C - Render dari Default T&C Admin (spk_tnc_settings) */}
               <div className="space-y-2.5 text-[11px] text-gray-700">
-                <h4 className="font-bold text-luxury-charcoal">Pasal Ketentuan Layanan (T&C):</h4>
-                <ol className="list-decimal pl-4 space-y-2">
-                  <li>
-                    <strong>Penguncian Slot Tanggal & Uang Muka (DP 50%):</strong> Jadwal riasan hanya dinyatakan sah terblokir setelah PIHAK KEDUA membubuhkan tanda tangan SPK digital ini serta mentransfer uang muka (DP 50%). DP bersifat non-refundable karena slot tanggal telah diblokir secara eksklusif (1 pengantin per hari).
-                  </li>
-                  <li>
-                    <strong>Pelunasan Pembayaran:</strong> Sisa pelunasan (50%) wajib diselesaikan selambat-lambatnya H-7 sebelum hari acara pernikahan.
-                  </li>
-                  <li>
-                    <strong>Ketepatan Waktu & Lokasi:</strong> PIHAK PERTAMA akan hadir tepat waktu sesuai jam mulai rias yang telah dikunci. PIHAK KEDUA diharapkan telah menyiapkan wajah bersih tanpa skincare berminyak tebal.
-                  </li>
-                  <li>
-                    <strong>Kebijakan Reschedule:</strong> Perubahan tanggal acara hanya dapat dilakukan apabila slot baru pada kalender PIHAK PERTAMA masih tersedia, dengan konfirmasi minimal 30 hari sebelumnya.
-                  </li>
-                  <li>
-                    <strong>Jaminan Mutu & Higienitas:</strong> Seluruh peralatan, spons, dan brush rias telah melalui proses sterilisasi medis dan menggunakan kosmetik luxury internasional original.
-                  </li>
-                </ol>
+                <h4 className="font-bold text-luxury-charcoal">
+                  {spkTnc?.title || "Pasal Ketentuan Layanan (T&C):"}
+                </h4>
+                {spkTnc?.content ? (
+                  <div className="whitespace-pre-wrap leading-relaxed text-gray-700 text-[11px]">
+                    {spkTnc.content}
+                  </div>
+                ) : (
+                  <ol className="list-decimal pl-4 space-y-2">
+                    <li>
+                      <strong>Penguncian Slot Tanggal & Uang Muka (DP 50%):</strong> Jadwal riasan hanya dinyatakan sah terblokir setelah PIHAK KEDUA membubuhkan tanda tangan SPK digital ini serta mentransfer uang muka (DP 50%). DP bersifat non-refundable karena slot tanggal telah diblokir secara eksklusif (1 pengantin per hari).
+                    </li>
+                    <li>
+                      <strong>Pelunasan Pembayaran:</strong> Sisa pelunasan (50%) wajib diselesaikan selambat-lambatnya H-7 sebelum hari acara pernikahan.
+                    </li>
+                    <li>
+                      <strong>Ketepatan Waktu & Lokasi:</strong> PIHAK PERTAMA akan hadir tepat waktu sesuai jam mulai rias yang telah dikunci. PIHAK KEDUA diharapkan telah menyiapkan wajah bersih tanpa skincare berminyak tebal.
+                    </li>
+                    <li>
+                      <strong>Kebijakan Reschedule:</strong> Perubahan tanggal acara hanya dapat dilakukan apabila slot baru pada kalender PIHAK PERTAMA masih tersedia, dengan konfirmasi minimal 30 hari sebelumnya.
+                    </li>
+                    <li>
+                      <strong>Jaminan Mutu & Higienitas:</strong> Seluruh peralatan, spons, dan brush rias telah melalui proses sterilisasi medis dan menggunakan kosmetik luxury internasional original.
+                    </li>
+                  </ol>
+                )}
               </div>
             </div>
 

@@ -10,7 +10,7 @@ export async function POST(
   try {
     const { token } = await context.params;
     const body = await req.json();
-    const { signature_data, terms_accepted } = body;
+    const { signature_data, terms_accepted, terms_content: clientTermsContent } = body;
 
     if (!token) {
       return NextResponse.json({ success: false, message: "Token tidak valid" }, { status: 400 });
@@ -157,10 +157,33 @@ export async function POST(
       }
     } catch (syncErr) {
       console.error("Warning: Booking sync error:", syncErr);
-      // Non-blocking: deal update already succeeded
     }
 
-    // 4. Immediately insert/sync to contracts table (SPK Archive)
+    // 4. Determine final T&C content
+    let finalTermsContent = clientTermsContent?.trim() || "";
+    if (!finalTermsContent) {
+      try {
+        const { data: tncSetting } = await supabase
+          .from("spk_tnc_settings")
+          .select("content")
+          .eq("is_active", true)
+          .order("id", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (tncSetting?.content) {
+          finalTermsContent = tncSetting.content;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!finalTermsContent) {
+      finalTermsContent = "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.";
+    }
+
+    // 5. Immediately insert/sync to contracts table (SPK Archive)
     try {
       const clientIp =
         req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -184,7 +207,7 @@ export async function POST(
             client_signature_data: signature_data,
             signed_at: now.toISOString(),
             signed_ip: clientIp,
-            terms_content: "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.",
+            terms_content: finalTermsContent,
             updated_at: now.toISOString(),
           },
           { onConflict: "spk_number" }

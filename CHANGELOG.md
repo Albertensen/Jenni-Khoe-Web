@@ -5,6 +5,25 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 06:46 — Pengaturan Default T&C SPK & Sinkronisasi ke Portal Klien
+
+### Added
+- **Default T&C Management di SPK Archive (`/admin/contracts`)**:
+  - Menambahkan tab khusus **"⚙️ Default T&C SPK Klien"** di halaman `/admin/contracts`.
+  - Admin dapat mengedit judul dan seluruh isi pasal/klausul Syarat & Ketentuan (T&C) SPK secara dinamis.
+  - Tombol **"Simpan & Terapkan ke Klien"** (`POST /api/contracts/tnc`) dengan notifikasi status dan timestamp pembaruan terakhir.
+  - Tombol **"Reset ke Standar Studio"** untuk mengembalikan klausul ke 6 pasal standar luxury Jenni Khoe MUA sewaktu-waktu.
+  - **Pratinjau Langsung (Live Client Preview)**: Tampilan visual real-time di sisi admin yang menyimulasikan persis bagaimana klausul T&C, checkbox persetujuan, dan area tanda tangan tampil di layar HP/browser klien.
+- **Backend & Database (`spk_tnc_settings`)**:
+  - Membuat tabel `spk_tnc_settings` pada Supabase untuk menyimpan template T&C default aktif secara persisten.
+  - Endpoint `GET /api/contracts/tnc` & `POST /api/contracts/tnc` untuk manipulasi template.
+- **Sinkronisasi Otomatis ke Portal Klien (`/booking/[token]`)**:
+  - `GET /api/booking/[token]` otomatis menyertakan data `spk_tnc` aktif.
+  - Formulir tanda tangan digital klien di Step 2 secara dinamis memuat teks klausul T&C yang telah disimpan oleh admin (bukan lagi teks hardcoded).
+  - Saat klien menandatangani SPK, `POST /api/booking/[token]/sign` mencatat dan membekukan (snapshot) klausul T&C aktif tersebut ke dalam kolom `contracts.terms_content` sehingga dokumen legal SPK di masa depan tetap autentik sesuai kesepakatan saat ditandatangani.
+
+---
+
 ## 2026-09-12 06:40 — Sinkronisasi Otomatis SPK Digital ke SPK Archive (`/admin/contracts`)
 
 ### Added

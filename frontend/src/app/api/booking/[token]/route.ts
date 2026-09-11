@@ -24,7 +24,31 @@ export async function GET(
       return NextResponse.json({ success: false, message: "Data reservasi tidak ditemukan atau tautan kedaluwarsa" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data });
+    // Fetch active default T&C
+    let spk_tnc = null;
+    try {
+      const { data: tncData } = await supabase
+        .from("spk_tnc_settings")
+        .select("title, content")
+        .eq("is_active", true)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (tncData) {
+        spk_tnc = tncData;
+      }
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...data,
+        spk_tnc,
+      },
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal error";
     return NextResponse.json({ success: false, message }, { status: 500 });
