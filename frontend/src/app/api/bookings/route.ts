@@ -116,8 +116,9 @@ export async function PATCH(req: NextRequest) {
     if (payment_method !== undefined) updates.payment_method = payment_method;
     if (notes !== undefined) updates.notes = notes;
 
-    // If payment_status is 'confirmed', also ensure status is 'confirmed'
-    if (payment_status === "confirmed" && !status) {
+    const isSuccess = payment_status === "confirmed" || payment_status === "success";
+
+    if (isSuccess && !status) {
       updates.status = "confirmed";
     }
 
@@ -137,7 +138,7 @@ export async function PATCH(req: NextRequest) {
       const dealUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (payment_status !== undefined) dealUpdates.payment_status = payment_status;
       if (payment_method !== undefined) dealUpdates.payment_method = payment_method;
-      if (payment_status === "confirmed") dealUpdates.status = "dp_paid";
+      if (isSuccess) dealUpdates.status = "dp_paid";
 
       await supabase
         .from("deal_customers")

@@ -5,6 +5,22 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 05:45 — Penyempurnaan Deal Customer Manual, Paket Makeup Editable, & Filter Alur Sukses
+
+### Changed
+- **Penyederhanaan Deal Customer (`/admin/deals`)**:
+  - Menghapus kolom SPK digital dan status pembayaran dari tabel Deal Customer agar fokus pada tahap negosiasi jadwal & paket.
+  - Menambahkan pengeditan paket riasan (dropdown paket standar + input paket kustom) yang dapat diubah dan disimpan langsung oleh admin.
+  - Menambahkan tombol **"+ Tambah Deal Manual"** dan modal formulir untuk memasukkan customer luar website yang menghubungi langsung via WhatsApp.
+  - Menambahkan label sumber customer yang jelas: **`🤖 Prospek CS CRM`** (dari AI website) atau **`✍️ Manual by Admin`** (dari WhatsApp luar).
+  - Mengubah logika siklus hidup deal: setelah status pembayaran `Success` (dana DP terkonfirmasi masuk), customer otomatis **hilang dari daftar Deal Customer** dan hanya ada di menu **Bookings**.
+- **Penyempurnaan Verifikasi Pembayaran di Bookings (`/admin/bookings`)**:
+  - Tombol **"✓ Confirm Dana Masuk"** hanya dimunculkan khusus untuk metode **Transfer Bank BCA**.
+  - Untuk metode QRIS dan Kartu Kredit, tombol konfirmasi manual disembunyikan dan dialihkan ke indikator "Menunggu Webhook Gateway (Otomatis)".
+  - Menyediakan label status **`✅ Success`** berwarna hijau untuk pembayaran yang telah terverifikasi/lunas.
+
+---
+
 ## 2026-09-12 05:00 — Otomatisasi Masuk Booking, Trigger Pembayaran Klien, & Konfirmasi Dana Masuk
 
 ### Added

@@ -19,13 +19,26 @@ function generateBookingToken(): string {
   return "deal_" + crypto.randomBytes(8).toString("hex");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = getServiceSupabase();
-    const { data, error } = await supabase
+    const url = new URL(req.url);
+    const includeAll = url.searchParams.get("all") === "true";
+
+    let query = supabase
       .from("deal_customers")
       .select("*")
       .order("updated_at", { ascending: false });
+
+    // Ponytail: exclude deals with completed/success payments so they only appear in Bookings
+    if (!includeAll) {
+      query = query
+        .neq("status", "dp_paid")
+        .neq("payment_status", "confirmed")
+        .neq("payment_status", "success");
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -43,7 +56,17 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceSupabase();
     const body = await req.json();
 
-    const { lead_id, name, phone, deal_date, deal_time, venue, service_package } = body;
+    const {
+      lead_id,
+      name,
+      phone,
+      deal_date,
+      deal_time,
+      venue,
+      service_package,
+      source,
+      admin_notes,
+    } = body;
 
     if (!name || !phone) {
       return NextResponse.json(
@@ -53,24 +76,29 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanPhone = normalizePhone(phone);
+    const dealSource = source || (lead_id ? "crm" : "manual");
 
-    // Check if an active deal already exists for this phone number
+    // Check if an active (non-dp_paid) deal already exists for this phone number
     const { data: existingDeals } = await supabase
       .from("deal_customers")
       .select("*")
       .eq("phone", cleanPhone)
+      .neq("status", "dp_paid")
+      .neq("payment_status", "confirmed")
+      .neq("payment_status", "success")
       .order("created_at", { ascending: false })
       .limit(1);
 
     if (existingDeals && existingDeals.length > 0) {
       const existing = existingDeals[0];
-      // Update with any new date/time if provided
       const updates: Record<string, any> = {
         updated_at: new Date().toISOString(),
       };
-      if (deal_date && !existing.deal_date) updates.deal_date = deal_date;
-      if (deal_time && !existing.deal_time) updates.deal_time = deal_time;
-      if (venue && !existing.venue) updates.venue = venue;
+      if (deal_date) updates.deal_date = deal_date;
+      if (deal_time) updates.deal_time = deal_time;
+      if (venue) updates.venue = venue;
+      if (service_package) updates.service_package = service_package;
+      if (admin_notes) updates.admin_notes = admin_notes;
 
       if (Object.keys(updates).length > 1) {
         await supabase
@@ -79,7 +107,6 @@ export async function POST(req: NextRequest) {
           .eq("id", existing.id);
       }
 
-      // Also mark lead status in ai_leads as closed if lead_id provided
       if (lead_id) {
         await supabase
           .from("ai_leads")
@@ -93,13 +120,13 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        data: existing,
-        message: "Deal customer sudah ada dan dimuat kembali",
+        data: { ...existing, ...updates },
+        message: "Data deal customer diperbarui",
         isExisting: true,
       });
     }
 
-    // Generate unique token
+    // Generate unique booking token
     const token = generateBookingToken();
 
     const insertPayload = {
@@ -112,6 +139,10 @@ export async function POST(req: NextRequest) {
       service_package: service_package || "Bridal Makeup Exclusive",
       booking_token: token,
       status: "draft",
+      source: dealSource,
+      admin_notes: admin_notes || null,
+      payment_method: "belum_bayar",
+      payment_status: "belum_bayar",
     };
 
     const { data, error } = await supabase
@@ -124,7 +155,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 
-    // Mark lead status as closed in ai_leads
+    // Mark lead status as closed in ai_leads if originating from CRM
     if (lead_id) {
       await supabase
         .from("ai_leads")
@@ -139,7 +170,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data,
-      message: "Berhasil menambahkan ke Deal Customer",
+      message:
+        dealSource === "manual"
+          ? "Deal manual oleh admin berhasil ditambahkan"
+          : "Prospek CRM berhasil dipindahkan ke Deal Customer",
       isExisting: false,
     });
   } catch (err: unknown) {
@@ -153,7 +187,19 @@ export async function PATCH(req: NextRequest) {
     const supabase = getServiceSupabase();
     const body = await req.json();
 
-    const { id, deal_date, deal_time, venue, status, service_package, admin_notes, payment_status, payment_method } = body;
+    const {
+      id,
+      name,
+      phone,
+      deal_date,
+      deal_time,
+      venue,
+      status,
+      service_package,
+      admin_notes,
+      payment_status,
+      payment_method,
+    } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, message: "ID Deal wajib disertakan" }, { status: 400 });
@@ -163,6 +209,8 @@ export async function PATCH(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
+    if (name !== undefined) updates.name = name.trim();
+    if (phone !== undefined) updates.phone = normalizePhone(phone);
     if (deal_date !== undefined) updates.deal_date = deal_date;
     if (deal_time !== undefined) updates.deal_time = deal_time;
     if (venue !== undefined) updates.venue = venue;
@@ -172,7 +220,7 @@ export async function PATCH(req: NextRequest) {
     if (payment_status !== undefined) updates.payment_status = payment_status;
     if (payment_method !== undefined) updates.payment_method = payment_method;
 
-    if (payment_status === "confirmed") {
+    if (payment_status === "confirmed" || payment_status === "success") {
       updates.status = "dp_paid";
     }
 
@@ -187,14 +235,17 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 
-    // Bidirectional sync to bookings table
+    // Bidirectional sync to bookings table if already linked
     try {
       const bookingUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (payment_status !== undefined) bookingUpdates.payment_status = payment_status;
       if (payment_method !== undefined) bookingUpdates.payment_method = payment_method;
-      if (payment_status === "confirmed") bookingUpdates.status = "confirmed";
+      if (payment_status === "confirmed" || payment_status === "success") {
+        bookingUpdates.status = "confirmed";
+      }
       if (deal_date !== undefined) bookingUpdates.event_date = deal_date;
       if (venue !== undefined) bookingUpdates.venue = venue;
+      if (service_package !== undefined) bookingUpdates.service_package = service_package;
 
       await supabase
         .from("bookings")
