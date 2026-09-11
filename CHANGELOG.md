@@ -5,6 +5,16 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 22:30 — Fix admin redirect bug caused by viewport prefetching of logout link
+
+### Fixed
+- `frontend/src/app/admin/layout.tsx` — replaced `<Link href="/api/logout">` with explicit interactive `<button onClick={handleLogout}>` using POST, disabled aggressive prefetch (`prefetch={false}`) on navigation links. Next.js automatic viewport prefetch on the logout `<Link>` had been wiping the `admin_token` cookie silently in background.
+- `frontend/src/app/api/logout/route.ts` — guarded GET against prefetch headers (`purpose: prefetch`, `x-purpose: prefetch`, `next-router-prefetch: 1`) so cookie is only removed upon explicit POST or intentional user logout.
+- `frontend/src/middleware.ts` — decoded JWT base64url with fallback and 30s clock skew tolerance to prevent edge decode failure.
+- `frontend/src/app/login/page.tsx` — enforced hard page redirect `window.location.href = "/admin"` to bust client router prefetch cache.
+
+---
+
 ## 2026-09-11 22:00 — Complete Supabase serverless integration for admin panel & API routes
 
 ### Added

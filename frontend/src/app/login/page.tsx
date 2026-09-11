@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +21,8 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        router.push("/admin");
+        // Hard redirect to clear any prefetch or cached router state
+        window.location.href = "/admin";
       } else {
         setError(data.message || "Login gagal");
       }
