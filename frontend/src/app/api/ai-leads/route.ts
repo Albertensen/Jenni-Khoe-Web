@@ -183,6 +183,14 @@ export async function GET(req: NextRequest) {
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
+      // Aggregate distinct sources across all logs
+      const logSources = new Set<string>();
+      if (client.source) logSources.add(client.source);
+      for (const log of client.activity_log) {
+        if (log.source) logSources.add(log.source);
+      }
+      client.sources = Array.from(logSources);
+
       // Extract all distinct names used by this client across touchpoints
       const namesHistoryMap = new Map<string, ClientNameHistory>();
       for (const log of client.activity_log) {
