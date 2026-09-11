@@ -5,6 +5,13 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 00:10 — Fix Ultra-HD Texture Loupe optical coordinate calculation
+
+### Fixed
+- `frontend/src/components/portfolio/TextureLoupe.tsx` — eliminated coordinate offset where zoomed area did not match the lens circle. Replaced hardcoded dimensions with dynamic container measurement (`ResizeObserver` + `getBoundingClientRect`), auto-detected natural aspect ratio of the image to remove letterbox drift, and scaled `backgroundSize` to `containerDimensions * zoom`. Center of the loupe ring now projects with 1:1 optical accuracy to the exact cursor coordinate.
+
+---
+
 ## 2026-09-11 23:45 — Fix remote image delivery with direct CDN rendering & seed live showcase portfolio
 
 ### Fixed
