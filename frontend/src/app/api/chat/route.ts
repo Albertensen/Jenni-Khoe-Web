@@ -29,7 +29,6 @@ interface Entities {
   people: string | null;
 }
 
-// Conversational entity extractor across all user messages
 function extractEntities(messages: Array<{ role: string; content: string }>): Entities {
   const text = messages
     .filter((m) => m.role === 'user')
@@ -84,20 +83,66 @@ function extractEntities(messages: Array<{ role: string; content: string }>): En
   return entities;
 }
 
+// Determines the funnel closing stage based on multi-turn dialogue
+function calculateClosingStage(
+  text: string,
+  intent: string,
+  entities: Entities,
+  messageCount: number
+): string {
+  const lower = text.toLowerCase();
+
+  // 1. Ready to book / Lock Date / Direct WhatsApp
+  if (
+    /(?:lock|kunci|booking|book|amankan|dp|transfer|rekening|spk|deal|fix|hubungi wa|menuju wa)/i.test(lower) ||
+    (entities.tanggal && entities.venue && entities.jam && entities.eventType)
+  ) {
+    return 'Siap Booking / Menuju WhatsApp';
+  }
+
+  // 2. Received pricelist / packages recommendation
+  if (
+    intent === 'faq_price' ||
+    intent === 'faq_package' ||
+    /(?:harga|biaya|paket|pricelist|price|promo|tarif|diskon)/i.test(lower) ||
+    entities.eventType
+  ) {
+    return 'Mendapat Rekomendasi Paket & Pricelist';
+  }
+
+  // 3. Questioning schedule & location
+  if (
+    entities.tanggal ||
+    entities.venue ||
+    entities.jam ||
+    intent === 'availability_check' ||
+    /(?:jadwal|tanggal|kapan|lokasi|venue|tempat|jam|pukul|tersedia|kosong)/i.test(lower)
+  ) {
+    return 'Tanya Jawab Jadwal & Lokasi';
+  }
+
+  // 4. Consultation on makeup concept / general questions
+  if (messageCount > 2) {
+    return 'Konsultasi Konsep Riasan';
+  }
+
+  return 'Form Terisi (Lead Masuk)';
+}
+
 function buildSmartFallback(
   intent: string,
   preset: typeof DEFAULT_PRESET,
-  entities: Entities
+  entities: Entities,
+  clientName?: string
 ): string {
   const waUrl = `https://wa.me/${preset.whatsapp_number}`;
+  const sapaan = clientName ? `Kak ${clientName}` : 'Kak';
 
-  // Helper: check missing fields
   const missing: string[] = [];
   if (!entities.tanggal) missing.push('tanggal acara');
   if (!entities.venue) missing.push('lokasi/venue');
   if (!entities.jam) missing.push('jam acara');
 
-  // Helper: formatted known facts
   const knownBullets: string[] = [];
   if (entities.tanggal) knownBullets.push(`• Tanggal: ${entities.tanggal}`);
   if (entities.venue) knownBullets.push(`• Lokasi: ${entities.venue}`);
@@ -119,15 +164,15 @@ function buildSmartFallback(
     }
 
     const eventConceptPrompt = (!entities.eventType && missing.length === 0)
-      ? 'Untuk konsep riasannya, apakah untuk acara Akad Nikah, Resepsi, atau Prewedding Kak?\n\n'
+      ? `Untuk konsep riasannya, apakah untuk acara Akad Nikah, Resepsi, atau Prewedding ${sapaan}?\n\n`
       : '';
 
     return (
-      `Kabar baik Kak! ${knownSection}` +
+      `Kabar baik ${sapaan}! ${knownSection}` +
       pkgRecommendation +
       eventConceptPrompt +
       `Slot riasan privat bersama Kak Jenni Khoe saat ini MASIH TERSEDIA ✨\n\n` +
-      `Untuk mengamankan slot (Lock Date) atau konsultasi privat via WhatsApp resmi Jenni Khoe, Kakak bisa tinggalkan nomor kontak di sini atau langsung hubungi:\n${waUrl}`
+      `Untuk mengamankan slot (Lock Date) atau konsultasi privat via WhatsApp resmi Jenni Khoe, ${sapaan} bisa langsung hubungi:\n${waUrl}`
     );
   }
 
@@ -135,15 +180,15 @@ function buildSmartFallback(
   if (entities.tanggal || entities.venue || entities.jam || intent === 'availability_check' || intent === 'booking_intent') {
     const missingPrompt = missing.length > 0 ? missing.join(' dan ') : 'detail jadwal acara Kakak';
     return (
-      `Terima kasih Kak! ${knownSection}` +
-      `Agar kami bisa memastikan ketersediaan slot dan kesiapan tim, boleh dibantu info ${missingPrompt} yang direncanakan ya Kak?\n\n` +
-      `Atau Kakak bisa langsung terhubung ke WhatsApp resmi kami: ${waUrl}`
+      `Terima kasih ${sapaan}! ${knownSection}` +
+      `Agar kami bisa memastikan ketersediaan slot dan kesiapan tim, boleh dibantu info ${missingPrompt} yang direncanakan ya ${sapaan}?\n\n` +
+      `Atau ${sapaan} bisa langsung terhubung ke WhatsApp resmi kami: ${waUrl}`
     );
   }
 
   if (intent === 'faq_price' || intent === 'faq_package') {
     return (
-      `Halo Kak! Berikut paket utama Jenni Khoe MUA:\n\n` +
+      `Halo ${sapaan}! Berikut paket utama Jenni Khoe MUA:\n\n` +
       `• Luxury Royal Bridal (Rp 12.000.000): Riasan Akad + Resepsi, Retouch standby, Free Mother of the Bride, Complexion tahan 18 jam.\n` +
       `• Intimate / Holy Matrimony (Rp 7.500.000): 1 sesi riasan pengantin radiant natural glam.\n` +
       `• Engagement / Prewedding (Rp 4.500.000): 1 look glam/natural + touch-up kit.\n` +
@@ -154,47 +199,19 @@ function buildSmartFallback(
   }
 
   if (intent === 'complaint') {
-    return `Mohon maaf yang sebesar-besarnya atas ketidaknyamanan Kakak. Kepuasan klien adalah prioritas utama Jenni Khoe MUA. Mohon hubungi kami langsung via WhatsApp ${waUrl} agar segera kami tindaklanjuti secara personal.`;
+    return `Mohon maaf yang sebesar-besarnya atas ketidaknyamanan ${sapaan}. Kepuasan klien adalah prioritas utama Jenni Khoe MUA. Mohon hubungi kami langsung via WhatsApp ${waUrl} agar segera kami tindaklanjuti secara personal.`;
   }
 
   return (
-    `Halo Kak! ${knownSection}` +
-    `Ada yang bisa kami bantu seputar konsultasi konsep riasan, cek ketersediaan jadwal, atau paket bridal untuk hari bahagia Kakak?`
+    `Halo ${sapaan}! ${knownSection}` +
+    `Ada yang bisa kami bantu seputar konsultasi konsep riasan, cek ketersediaan jadwal, atau paket bridal untuk hari bahagia ${sapaan}?`
   );
-}
-
-// Auto lead extraction
-async function maybeAutoCaptureLead(supabase: any, text: string, intent: string, entities: Entities) {
-  try {
-    const phoneMatch = text.match(/(?:\+?62|08)[0-9\s-]{8,15}/);
-    if (phoneMatch) {
-      const cleanPhone = phoneMatch[0].replace(/[\s-]/g, '');
-      const nameMatch = text.match(/(?:nama saya|nama|atas nama|panggil saya|saya)\s+([a-zA-Z\s]{2,25})/i);
-      const name = (nameMatch && nameMatch[1]) ? nameMatch[1].trim() : 'Website Lead (Chat CS)';
-
-      const summaryParts: string[] = [];
-      if (entities.tanggal) summaryParts.push(`Tgl: ${entities.tanggal}`);
-      if (entities.venue) summaryParts.push(`Venue: ${entities.venue}`);
-      if (entities.jam) summaryParts.push(`Jam: ${entities.jam}`);
-
-      await supabase.from('ai_leads').insert({
-        name,
-        whatsapp: cleanPhone,
-        intent: intent || 'booking_intent',
-        lead_score: 90,
-        status: 'hot',
-        summary: `Lead AI Chat CS (${summaryParts.join(', ') || text.slice(0, 100)})`,
-      });
-    }
-  } catch (err) {
-    console.error('Lead capture err:', err);
-  }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous';
-    const rl = checkRateLimit('chat:' + ip, 20, 60);
+    const rl = checkRateLimit('chat:' + ip, 25, 60);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Too many requests' },
@@ -204,6 +221,9 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const msgs: Array<{ role: string; content: string }> = body?.messages ?? [];
+    const sessionId = body?.sessionId || body?.session_id || null;
+    const clientName = body?.clientName || body?.name || null;
+    const clientPhone = body?.clientPhone || body?.phone || null;
 
     if (!Array.isArray(msgs) || msgs.length === 0) {
       return NextResponse.json({ error: 'messages required' }, { status: 400 });
@@ -211,9 +231,8 @@ export async function POST(req: NextRequest) {
 
     const lastMsg = msgs[msgs.length - 1]?.content || '';
     const intent = detectIntent(lastMsg);
-
-    // Extract entities across all user messages
     const entities = extractEntities(msgs);
+    const closingStage = calculateClosingStage(lastMsg, intent, entities, msgs.length);
 
     // Fetch active preset from Supabase
     let preset = DEFAULT_PRESET;
@@ -234,18 +253,41 @@ export async function POST(req: NextRequest) {
       // use default
     }
 
-    // Auto lead capture if phone number provided
-    if (preset.auto_capture_leads) {
-      maybeAutoCaptureLead(supabase, lastMsg, intent, entities).catch(() => {});
+    // Update lead record with current progress stage in Supabase
+    if (sessionId) {
+      try {
+        const updatePayload: Record<string, any> = {
+          messages: msgs.length,
+          closing_stage: closingStage,
+          last_message: lastMsg.slice(0, 300),
+          interest: entities.eventType || intent || 'Konsultasi Jadwal',
+          updated_at: new Date().toISOString(),
+        };
+        if (clientName) updatePayload.name = clientName;
+        if (clientPhone) updatePayload.phone = clientPhone;
+        if (entities.tanggal) updatePayload.schedule_date = entities.tanggal;
+        if (entities.venue) updatePayload.schedule_venue = entities.venue;
+        if (entities.jam) updatePayload.schedule_time = entities.jam;
+
+        await supabase
+          .from('ai_leads')
+          .update(updatePayload)
+          .eq('session_id', sessionId);
+      } catch (leadErr) {
+        console.error('Lead tracking error:', leadErr);
+      }
     }
 
     // Context summary to inject into LLM
     const contextSummary = [
+      clientName ? `- Nama calon klien: Kak ${clientName}` : null,
+      clientPhone ? `- Nomor WhatsApp klien: ${clientPhone}` : null,
       entities.tanggal ? `- Tanggal acara (sudah diberikan klien): ${entities.tanggal}` : null,
       entities.venue ? `- Lokasi/venue (sudah diberikan klien): ${entities.venue}` : null,
       entities.jam ? `- Jam acara (sudah diberikan klien): ${entities.jam}` : null,
       entities.eventType ? `- Jenis acara (sudah diberikan klien): ${entities.eventType}` : null,
       entities.people ? `- Jumlah orang (sudah diberikan klien): ${entities.people}` : null,
+      `- Tahap Closing Saat Ini: ${closingStage}`,
     ].filter(Boolean).join('\n');
 
     const combinedSystemPrompt = `${preset.system_prompt}
@@ -264,7 +306,7 @@ Format Template Chat: ${preset.whatsapp_text_template}
 ${contextSummary || '(belum ada data detail acara dari klien)'}
 
 [ATURAN ANTI-PENGULANGAN (CRITICAL)]:
-- JANGAN PERNAH menanyakan ulang tanggal, lokasi, jam, atau jenis acara yang SUDAH TERCATAT di [DATA KLIEN YANG SUDAH DITERIMA].
+- JANGAN PERNAH menanyakan ulang nama, nomor telepon, tanggal, lokasi, jam, atau jenis acara yang SUDAH TERCATAT di [DATA KLIEN YANG SUDAH DITERIMA].
 - Jika tanggal, lokasi, dan jam sudah tercatat, LANGSUNG konfirmasi bahwa jadwal tersebut TERSEDIA dan tanyakan konsep riasan / arahkan lock tanggal ke WhatsApp.
 - Jika hanya sebagian data yang ada, tanyakan HANYA data yang masih kurang.`;
 
@@ -309,6 +351,7 @@ ${contextSummary || '(belum ada data detail acara dari klien)'}
             source: 'model',
             model: preset.model_name,
             entities,
+            closing_stage: closingStage,
           });
         }
       }
@@ -317,13 +360,14 @@ ${contextSummary || '(belum ada data detail acara dari klien)'}
       console.warn('AI Model provider unreachable, using conversational fallback:', apiErr.message);
     }
 
-    // Graceful fallback with anti-repeat entity intelligence
-    const fallbackReply = buildSmartFallback(intent, preset, entities);
+    // Fallback response with anti-repeat entity intelligence
+    const fallbackReply = buildSmartFallback(intent, preset, entities, clientName || undefined);
     return NextResponse.json({
       messages: [...msgs, { role: 'assistant', content: fallbackReply }],
       source: 'knowledge-preset',
       model: preset.model_name,
       entities,
+      closing_stage: closingStage,
     });
   } catch (err: any) {
     console.error('Chat error:', err);

@@ -5,6 +5,20 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 01:35 — Pre-Chat Gating dan CRM Prospek CS
+
+### Added
+- `frontend/src/components/chat/ChatBubble.tsx` — Wajibkan calon klien mengisi **Nama Lengkap + Nomor WhatsApp aktif** sebelum bisa chat dengan AI CS lewat form gatekeeper.
+- Setelah submit, data klien langsung dibuatkan record di tabel Supabase `ai_leads` (nama, nomor HP, session_id, created_at, closing_stage awal = "Form Terisi (Lead Masuk)").
+- Session klien disimpan di localStorage; jika kembali ke website, chat langsung lanjut tanpa isi formulir ulang. Tombol 🔄 untuk mulai sesi baru / ganti identitas.
+- `frontend/src/app/api/chat/route.ts` — Setiap pesan chat memperbarui `ai_leads` (jumlah pesan, closing_stage otomatis dari percakapan, detail jadwal tanggal/venue/jam, pesan terakhir).
+- `calculateClosingStage()` — Deteksi tahap closing otomatis: Form Terisi → Tanya Jawab Jadwal & Lokasi → Mendapat Rekomendasi Paket & Pricelist → Siap Booking / Menuju WhatsApp.
+- `frontend/src/app/admin/ai-leads/page.tsx` — Panel **Prospek CS CRM** berisi: nama klien, nomor HP (klik salin), waktu chat (tanggal + jam), tahap closing saat ini (badge warna), detail jadwal terdata, pesan terakhir, status prospek dropdown (Baru/Prospek Ulang/Ditawari/Deal/Batal), dan tombol Chat WA dengan draft pesan follow-up otomatis sesuai tahap closing.
+- KPI funnel 5 kartu: Total Calon Klien, Form Terisi, Tanya Jadwal, Dapat Pricelist, Siap Booking.
+- `frontend/src/app/api/ai-leads/route.ts` — GET semua lead, POST upsert by session, PATCH update status/closing_stage, dan normalisasi nomor HP (08xxx → 628xxx).
+
+---
+
 ## 2026-09-12 00:55 — Fix CS Chat Repetitive Question Loop & Context Memory
 
 ### Fixed
