@@ -5,6 +5,19 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 23:45 — Fix remote image delivery with direct CDN rendering & seed live showcase portfolio
+
+### Fixed
+- `frontend/next.config.ts` — configured `images.unoptimized: true` and wildcard remotePatterns to eliminate Next.js Vercel 400 Bad Request (`INVALID_IMAGE_OPTIMIZE_REQUEST`) on external Unsplash / Supabase image URLs.
+- `frontend/src/components/portfolio/BeforeAfterSlider2.tsx` — added `unoptimized` flag to before and dual-lighting after `<Image>` tags.
+- `frontend/src/components/portfolio/LookbookMatrix.tsx` — added `unoptimized` flag to grid and modal preview `<Image>` tags.
+- `frontend/src/components/portfolio/TextureLoupe.tsx` — added `unoptimized` flag to base texture inspection `<Image>` tag.
+
+### Added
+- Seeded prime showcase portfolio record `#1`: **"Royal Sundanese Siger Glam"** (Bride: Aurelia & Jonathan) with verified high-res Before, After Studio, After Natural Light, and Ultra-HD Texture loupe images, synchronized live with landing page `/` and `/admin/portfolio`.
+
+---
+
 ## 2026-09-11 23:15 — Dynamic CMS Portfolio & Main Page Visual Proof Synchronization
 
 ### Added

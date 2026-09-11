@@ -61,6 +61,7 @@ export default function BeforeAfterSlider2({
           className="object-cover pointer-events-none"
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
+          unoptimized
         />
 
         <span className="absolute top-4 left-4 z-10 rounded-full bg-luxury-charcoal/70 px-3 py-1 text-[10px] font-medium tracking-widest text-luxury-pearl backdrop-blur-sm">
@@ -80,7 +81,8 @@ export default function BeforeAfterSlider2({
             className="object-cover pointer-events-none"
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
-          />
+          unoptimized
+        />
           <span className="absolute top-4 right-4 z-10 rounded-full bg-luxury-rose-gold/85 px-3 py-1 text-[10px] font-medium tracking-widest text-white backdrop-blur-sm">
             {labelAfter}
           </span>

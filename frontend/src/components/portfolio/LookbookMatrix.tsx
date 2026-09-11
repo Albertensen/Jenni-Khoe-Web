@@ -104,6 +104,7 @@ export default function LookbookMatrix({ initialItems }: LookbookMatrixProps) {
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-luxury-charcoal/70 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -146,6 +147,7 @@ export default function LookbookMatrix({ initialItems }: LookbookMatrixProps) {
                     fill
                     className="object-cover"
                     sizes="400px"
+                    unoptimized
                   />
                 </div>
                 <div>
