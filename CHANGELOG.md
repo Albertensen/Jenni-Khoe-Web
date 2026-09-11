@@ -5,6 +5,26 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 03:20 — Anti-Duplikasi Kontak CRM Berbasis Nomor WhatsApp & Log Multi-Kanal Multi-Nama
+
+### Added
+- Database Supabase `ai_leads`: Penambahan kolom `activity_log jsonb DEFAULT '[]'::jsonb` untuk merekam riwayat seluruh interaksi dan touchpoint klien.
+- Riwayat Multi-Nama (Client Name Preservation):
+  - Jika klien dengan nomor WA yang sama memasukkan nama berbeda di formulir berbeda (misalnya: nama "Aura" di Booking Cepat dan "Aurelia Chandra" di Chat CS), kedua nama tetap tercatat secara utuh.
+  - Setiap log aktivitas menyimpan `client_name` spesifik yang dimasukkan pada saat itu.
+  - Halaman Admin menampilkan nama utama beserta badge alias nama lain: *`Nama di Booking Cepat: "Aura"`*.
+- Timeline Log Aktivitas Interaktif (`/admin/ai-leads`):
+  - Tombol ekspansi `🕒 X Log Aktivitas` pada setiap baris tabel CRM.
+  - Laci timeline vertikal menampilkan detail per interaksi: Tanggal & Jam (WIB), badge kanal (`🤖 Chat CS`, `⚡ Booking Cepat`, `🔍 Cek Tanggal`, `📅 Kalender Slot`), aksi/paket yang dipilih, nama yang dimasukkan, detail jadwal/venue, dan kutipan pesan.
+
+### Changed
+- `src/app/api/ai-leads/route.ts`:
+  - **Deduplikasi Level Database (POST)**: Pencarian prospek berbasis nomor WhatsApp yang dinormalisasi (`cleanPhone`). Jika sudah pernah terdaftar, sistem memperbarui (update in-place) dan menambahkan entri baru ke `activity_log`, bukan membuat baris duplikat.
+  - **Deduplikasi Level Query & Aggregasi (GET)**: Mengelompokkan seluruh riwayat kontak berdasarkan nomor WhatsApp unik, menggabungkan log aktivitas, dan mengidentifikasi daftar alias nama yang pernah digunakan.
+- `src/app/api/chat/route.ts`: Sinkronisasi pembaruan tahap closing chat langsung ke prospek dengan nomor telepon yang sama.
+
+---
+
 ## 2026-09-12 02:45 — Penggabungan Cek Ketersediaan Tanggal & Kalender Slot Realtime
 
 ### Changed

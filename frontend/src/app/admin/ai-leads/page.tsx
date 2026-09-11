@@ -2,6 +2,22 @@
 
 import { useState, useEffect, useMemo } from "react";
 
+export interface ActivityLogEntry {
+  timestamp: string;
+  source: string;
+  action: string;
+  client_name?: string;
+  note?: string;
+  schedule_date?: string | null;
+  schedule_venue?: string | null;
+  stage?: string;
+}
+
+export interface ClientAlias {
+  name: string;
+  source: string;
+}
+
 interface AiLead {
   id: number;
   session_id: string;
@@ -17,6 +33,9 @@ interface AiLead {
   last_message: string | null;
   status: string;
   source: string;
+  sources?: string[];
+  aliases?: ClientAlias[];
+  activity_log?: ActivityLogEntry[];
   created_at: string;
   updated_at: string;
 }
@@ -89,6 +108,7 @@ export default function AiLeadsPage() {
   const [sourceFilter, setSourceFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+  const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
 
   const fetchLeads = async () => {
     try {
@@ -157,7 +177,7 @@ export default function AiLeadsPage() {
 
       template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan obrolan di website mengenai jadwal ${details || "acara Kakak"}, apakah jadwal tersebut ingin langsung kami hold dan konfirmasi slotnya Kak?`;
     } else if (lead.closing_stage === "Mendapat Rekomendasi Paket & Pricelist") {
-      template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan konsultasi paket riasan pengantin di website, apakah Kakak ingin kami buatkan penawaran invoice resmi atau ada konsep khusus yang ingin didiskusikan terlebih dahulu?`;
+      template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan konsultasi paket riasan pengantin di website, apakah Kakak ingin kami kirimkan katalog pricelist resmi lengkap atau ada konsep khusus yang ingin didiskusikan terlebih dahulu?`;
     } else if (lead.closing_stage === "Siap Booking / Menuju WhatsApp") {
       template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Terima kasih atas ketertarikan Kakak! Kami siap membantu lock tanggal hari bahagia Kakak dan menyiapkan SPK resmi reservasi privat.`;
     } else if (lead.closing_stage === "Form Terisi (Lead Masuk)") {
@@ -180,16 +200,32 @@ export default function AiLeadsPage() {
   // Filtered Leads
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
+      const aliasesMatch = (lead.aliases || []).some((a) =>
+        a.name.toLowerCase().includes(search.toLowerCase())
+      );
+
+      const logsMatch = (lead.activity_log || []).some(
+        (a) =>
+          (a.action && a.action.toLowerCase().includes(search.toLowerCase())) ||
+          (a.note && a.note.toLowerCase().includes(search.toLowerCase())) ||
+          (a.client_name && a.client_name.toLowerCase().includes(search.toLowerCase()))
+      );
+
       const matchSearch =
         search === "" ||
         lead.name.toLowerCase().includes(search.toLowerCase()) ||
         lead.phone.includes(search) ||
         (lead.schedule_venue && lead.schedule_venue.toLowerCase().includes(search.toLowerCase())) ||
-        (lead.last_message && lead.last_message.toLowerCase().includes(search.toLowerCase()));
+        (lead.last_message && lead.last_message.toLowerCase().includes(search.toLowerCase())) ||
+        aliasesMatch ||
+        logsMatch;
 
       const matchStage = stageFilter === "all" || lead.closing_stage === stageFilter;
       const matchStatus = statusFilter === "all" || lead.status === statusFilter;
-      const matchSource = sourceFilter === "all" || lead.source === sourceFilter;
+      const matchSource =
+        sourceFilter === "all" ||
+        lead.source === sourceFilter ||
+        (lead.sources && lead.sources.includes(sourceFilter));
 
       return matchSearch && matchStage && matchStatus && matchSource;
     });
@@ -204,7 +240,7 @@ export default function AiLeadsPage() {
             Prospek CS CRM & Pelacakan Closing
           </h2>
           <p className="text-xs text-luxury-deep-slate/70 mt-1">
-            Pantau semua kontak klien dari Chat CS, Cek Tanggal, Booking Cepat, dan Kalender Slot untuk follow-up closing.
+            Database kontak klien terpadu (anti-duplikat berbasis Nomor WhatsApp) lintas kanal Chat CS, Cek Tanggal, Booking Cepat, dan Kalender Slot.
           </p>
         </div>
         <button
@@ -220,10 +256,10 @@ export default function AiLeadsPage() {
       {/* KPI Funnel Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
-          <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Total Calon Klien</p>
+          <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Total Klien Unik (Nomor WA)</p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-800">{stats.total}</span>
-            <span className="text-[10px] text-gray-400">kontak</span>
+            <span className="text-[10px] text-gray-400">klien</span>
           </div>
         </div>
 
@@ -233,7 +269,7 @@ export default function AiLeadsPage() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-amber-900">{stats.initial}</span>
-            <span className="text-[10px] text-amber-700">belum lanjut</span>
+            <span className="text-[10px] text-amber-700">tahap awal</span>
           </div>
         </div>
 
@@ -275,7 +311,7 @@ export default function AiLeadsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama, WhatsApp, lokasi venue, atau isi chat..."
+            placeholder="Cari nama, alias, WhatsApp, venue, atau riwayat log..."
             className="w-full pl-9 pr-4 py-2 text-xs border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:border-luxury-rose-gold transition-colors"
           />
           <span className="absolute left-3 top-2.5 text-xs text-gray-400">🔍</span>
@@ -328,11 +364,11 @@ export default function AiLeadsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-medium">
-                <th className="py-3.5 px-4">Waktu & Kanal</th>
+                <th className="py-3.5 px-4">Waktu Terkini & Kanal</th>
                 <th className="py-3.5 px-4">Calon Klien & WA</th>
-                <th className="py-3.5 px-4">Tahap Closing Saat Ini</th>
-                <th className="py-3.5 px-4">Detail Jadwal Terdata</th>
-                <th className="py-3.5 px-4">Catatan / Pesan Terakhir</th>
+                <th className="py-3.5 px-4">Tahap Closing Tertinggi</th>
+                <th className="py-3.5 px-4">Detail Jadwal</th>
+                <th className="py-3.5 px-4">Riwayat Log & Touchpoint</th>
                 <th className="py-3.5 px-4">Status Prospek</th>
                 <th className="py-3.5 px-4 text-center">Aksi Prospek</th>
               </tr>
@@ -351,7 +387,7 @@ export default function AiLeadsPage() {
                   icon: "🌐",
                 };
 
-                const dateObj = new Date(lead.created_at);
+                const dateObj = new Date(lead.updated_at || lead.created_at);
                 const dateStr = dateObj.toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "short",
@@ -362,25 +398,56 @@ export default function AiLeadsPage() {
                   minute: "2-digit",
                 });
 
+                const isExpanded = expandedLeadId === lead.id;
+                const logCount = lead.activity_log?.length || 1;
+                const distinctSources = lead.sources || [lead.source || "chat_widget"];
+                const aliases = lead.aliases || [];
+
                 return (
                   <tr key={lead.id} className="hover:bg-gray-50/70 transition-colors">
-                    {/* Waktu & Kanal */}
+                    {/* Waktu & Kanal Terkini */}
                     <td className="py-3.5 px-4 align-top whitespace-nowrap">
                       <p className="font-medium text-gray-800">{dateStr}</p>
                       <p className="text-[11px] text-gray-400 mt-0.5">{timeStr} WIB</p>
-                      <span
-                        className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium border ${sourceInfo.badgeClass}`}
-                      >
-                        <span>{sourceInfo.icon}</span>
-                        <span>{sourceInfo.label}</span>
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${sourceInfo.badgeClass}`}
+                        >
+                          <span>{sourceInfo.icon}</span>
+                          <span>{sourceInfo.label}</span>
+                        </span>
+                        {distinctSources.length > 1 && (
+                          <span
+                            className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-medium bg-gray-100 text-gray-600 border border-gray-200"
+                            title={`Klien menggunakan ${distinctSources.length} kanal berbeda`}
+                          >
+                            +{distinctSources.length - 1} kanal
+                          </span>
+                        )}
+                      </div>
                     </td>
 
-                    {/* Calon Klien & WA */}
+                    {/* Calon Klien & WA (Menampilkan Nama Utama + Alias Jika Berbeda) */}
                     <td className="py-3.5 px-4 align-top">
                       <p className="font-semibold text-luxury-charcoal text-sm">{lead.name}</p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="font-mono text-gray-600">{lead.phone}</span>
+
+                      {/* Tampilkan jika nama berbeda pernah dipakai di form lain */}
+                      {aliases.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {aliases.map((alias, aIdx) => {
+                            const aSrc = SOURCE_CONFIG[alias.source]?.label || alias.source;
+                            return (
+                              <p key={aIdx} className="text-[10px] text-luxury-deep-slate/70 flex items-center gap-1">
+                                <span className="text-gray-400">Nama di {aSrc}:</span>
+                                <span className="font-medium text-luxury-charcoal bg-amber-50 px-1 rounded border border-amber-100">"{alias.name}"</span>
+                              </p>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <span className="font-mono text-gray-600 font-medium">{lead.phone}</span>
                         <button
                           onClick={() => copyToClipboard(lead.phone)}
                           title="Salin nomor WhatsApp"
@@ -389,9 +456,29 @@ export default function AiLeadsPage() {
                           {copiedPhone === lead.phone ? "✓" : "📋"}
                         </button>
                       </div>
+
+                      {/* Touchpoint Badges list */}
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {distinctSources.map((src) => {
+                          const conf = SOURCE_CONFIG[src] || {
+                            icon: "🌐",
+                            label: src,
+                            badgeClass: "bg-gray-50 text-gray-600 border-gray-200",
+                          };
+                          return (
+                            <span
+                              key={src}
+                              className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-medium border ${conf.badgeClass}`}
+                            >
+                              <span>{conf.icon}</span>
+                              <span>{conf.label}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
                     </td>
 
-                    {/* Tahap Closing Saat Ini */}
+                    {/* Tahap Closing Tertinggi */}
                     <td className="py-3.5 px-4 align-top">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${stageInfo.badgeClass}`}
@@ -429,15 +516,26 @@ export default function AiLeadsPage() {
                       )}
                     </td>
 
-                    {/* Pesan Terakhir */}
+                    {/* Riwayat Log Touchpoint & Pesan Terakhir */}
                     <td className="py-3.5 px-4 align-top max-w-xs">
-                      {lead.last_message ? (
-                        <p className="text-gray-600 text-[11px] line-clamp-2 leading-relaxed" title={lead.last_message}>
+                      {lead.last_message && (
+                        <p className="text-gray-600 text-[11px] line-clamp-1 leading-relaxed mb-1.5 italic" title={lead.last_message}>
                           "{lead.last_message}"
                         </p>
-                      ) : (
-                        <span className="text-gray-300 text-[11px] italic">Belum ada pesan</span>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer border ${
+                          isExpanded
+                            ? "bg-luxury-rose-gold text-white border-luxury-rose-gold shadow-2xs"
+                            : "bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        <span>🕒</span>
+                        <span>{logCount} Log Aktivitas</span>
+                        <span>{isExpanded ? "▲" : "▼"}</span>
+                      </button>
                     </td>
 
                     {/* Status Prospek (Dropdown) */}
@@ -484,6 +582,117 @@ export default function AiLeadsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Expandable Activity Log Timeline Modal / Drawer */}
+        {expandedLeadId !== null && (() => {
+          const lead = leads.find((l) => l.id === expandedLeadId);
+          if (!lead) return null;
+
+          return (
+            <div className="bg-luxury-champagne-light/30 border-t border-luxury-champagne/40 p-5 sm:p-6 transition-all animate-fade-in">
+              <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-luxury-champagne/50 p-5 sm:p-6 shadow-md">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3.5 mb-5">
+                  <div>
+                    <h4 className="font-serif font-bold text-luxury-charcoal text-base flex items-center gap-2">
+                      <span>🕒</span> Riwayat Lengkap Touchpoint & Log Aktivitas
+                    </h4>
+                    <p className="text-xs text-luxury-deep-slate/70 mt-0.5">
+                      Klien: <strong className="text-luxury-charcoal">{lead.name}</strong> • WhatsApp:{" "}
+                      <strong className="font-mono text-luxury-charcoal">{lead.phone}</strong> • Total{" "}
+                      <strong>{lead.activity_log?.length || 1} interaksi terdata</strong>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedLeadId(null)}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-800 px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    ✕ Tutup Riwayat
+                  </button>
+                </div>
+
+                {/* Timeline vertical list */}
+                <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-luxury-champagne/70">
+                  {(lead.activity_log || []).map((entry, idx) => {
+                    const d = new Date(entry.timestamp);
+                    const dateFormatted = d.toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    });
+                    const timeFormatted = d.toLocaleTimeString("id-ID", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
+                    const srcConf = SOURCE_CONFIG[entry.source] || {
+                      label: entry.source || "Website",
+                      badgeClass: "bg-gray-100 text-gray-700 border-gray-200",
+                      icon: "🌐",
+                    };
+
+                    return (
+                      <div key={idx} className="relative group">
+                        {/* Dot with source icon */}
+                        <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-luxury-rose-gold flex items-center justify-center text-[9px] shadow-2xs">
+                          {srcConf.icon}
+                        </div>
+
+                        <div className="bg-gray-50/70 hover:bg-white p-4 rounded-xl border border-gray-100 shadow-2xs transition-all">
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-semibold border ${srcConf.badgeClass}`}
+                              >
+                                <span>{srcConf.icon}</span>
+                                <span>{srcConf.label}</span>
+                              </span>
+                              <span className="font-semibold text-xs text-gray-900">
+                                {entry.action}
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-mono font-medium text-gray-500 bg-white px-2 py-0.5 rounded-md border border-gray-100">
+                              {dateFormatted} • {timeFormatted} WIB
+                            </span>
+                          </div>
+
+                          {/* Nama spesifik yang digunakan pada formulir/touchpoint ini */}
+                          {entry.client_name && (
+                            <div className="text-[11px] text-luxury-deep-slate/80 mt-1 flex items-center gap-1.5">
+                              <span className="text-gray-400">👤 Nama saat input:</span>
+                              <span className="font-semibold text-luxury-charcoal bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                                "{entry.client_name}"
+                              </span>
+                              {entry.client_name !== lead.name && (
+                                <span className="text-[10px] text-amber-600 italic">
+                                  (berbeda dari nama profil utama "{lead.name}")
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {entry.schedule_date && (
+                            <p className="text-[11px] text-emerald-800 font-medium mt-1">
+                              📅 Jadwal Riasan: <strong>{entry.schedule_date}</strong>{" "}
+                              {entry.schedule_venue ? `di venue ${entry.schedule_venue}` : ""}
+                            </p>
+                          )}
+
+                          {entry.note && (
+                            <p className="text-[11px] text-gray-600 mt-1.5 bg-white p-2.5 rounded-lg border border-gray-100 italic leading-relaxed">
+                              "{entry.note}"
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

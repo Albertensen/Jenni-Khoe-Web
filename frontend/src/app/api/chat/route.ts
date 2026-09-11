@@ -256,6 +256,13 @@ export async function POST(req: NextRequest) {
     // Update lead record with current progress stage in Supabase
     if (sessionId) {
       try {
+        let cleanPhone: string | null = null;
+        if (clientPhone) {
+          const raw = clientPhone.trim().replace(/[^0-9+]/g, '');
+          if (raw.startsWith('08')) cleanPhone = '628' + raw.slice(2);
+          else if (raw.startsWith('+62')) cleanPhone = raw.slice(1);
+          else cleanPhone = raw;
+        }
         const updatePayload: Record<string, any> = {
           messages: msgs.length,
           closing_stage: closingStage,
@@ -264,15 +271,22 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString(),
         };
         if (clientName) updatePayload.name = clientName;
-        if (clientPhone) updatePayload.phone = clientPhone;
+        if (cleanPhone) updatePayload.phone = cleanPhone;
         if (entities.tanggal) updatePayload.schedule_date = entities.tanggal;
         if (entities.venue) updatePayload.schedule_venue = entities.venue;
         if (entities.jam) updatePayload.schedule_time = entities.jam;
 
-        await supabase
-          .from('ai_leads')
-          .update(updatePayload)
-          .eq('session_id', sessionId);
+        if (cleanPhone && cleanPhone.length >= 8) {
+          await supabase
+            .from('ai_leads')
+            .update(updatePayload)
+            .eq('phone', cleanPhone);
+        } else {
+          await supabase
+            .from('ai_leads')
+            .update(updatePayload)
+            .eq('session_id', sessionId);
+        }
       } catch (leadErr) {
         console.error('Lead tracking error:', leadErr);
       }
