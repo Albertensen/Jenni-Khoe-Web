@@ -1,5 +1,5 @@
 import CheckAvailabilityForm from "@/components/CheckAvailabilityForm";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import ChatBubble from "@/components/chat/ChatBubble";
 import PageTransition from "@/components/PageTransition";
 import LookbookMatrix from "@/components/portfolio/LookbookMatrix";
 import TextureLoupe from "@/components/portfolio/TextureLoupe";
@@ -189,7 +189,7 @@ export default async function Home() {
         </section>
 
         {/* Floating CS */}
-        <FloatingWhatsApp />
+        <ChatBubble />
 
         {/* Minimal Footer */}
         <footer className="w-full border-t border-luxury-champagne/40 py-8 px-6 text-center text-xs text-luxury-deep-slate/60">

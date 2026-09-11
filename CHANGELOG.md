@@ -5,6 +5,22 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 00:35 — AI CS Chatbot COMBO-UTAMA & Admin Preset Customizer
+
+### Added
+- `frontend/src/app/api/admin/chat-preset/route.ts` — Serverless REST API untuk GET dan POST konfigurasi preset AI CS di Supabase table `ai_chat_presets`.
+- `frontend/src/app/admin/ai-preset/page.tsx` — Halaman panel admin untuk kustomisasi penuh AI Customer Service: model identifier (`COMBO-UTAMA`), endpoint URL, API key, temperature, max tokens, greeting message, system prompt persona, aturan/tugas CS (cek jadwal, booking flow, batasan diskon), knowledge base paket & harga, serta integrasi WhatsApp hotline.
+- Supabase Cloud DDL: tabel `ai_chat_presets` dengan RLS policy dan default seed data `COMBO-UTAMA`.
+- `frontend/src/components/chat/ChatBubble.tsx` — Widget floating chat CS interaktif mewah dengan indikator online, dynamic greeting dari preset, quick-action chips (Cek Jadwal, Info Paket, Konsep Riasan, WhatsApp), dan auto-scroll.
+- Sidebar menu item `CS AI Preset` di `frontend/src/app/admin/layout.tsx`.
+- Dokumentasi modul AI CS Preset di `docs/ROADMAP.md` Phase 7.
+
+### Changed
+- `frontend/src/app/api/chat/route.ts` — Refactor dari Groq statis ke provider model dinamis (`COMBO-UTAMA`), injeksi aturan & knowledge base dari preset Supabase, auto-capture prospek nomor HP ke tabel `ai_leads`, dan graceful fallback cerdas anti-down ke knowledge base saat model timeout/offline.
+- `frontend/src/app/page.tsx` — Ganti tombol WhatsApp statis dengan widget interaktif `ChatBubble` live AI CS.
+
+---
+
 ## 2026-09-12 00:10 — Fix Ultra-HD Texture Loupe optical coordinate calculation
 
 ### Fixed

@@ -99,6 +99,13 @@
   - **Contract & SPK Archive (`/admin/contracts`):** Viewer tanda tangan digital klien, unduhan PDF SPK resmi, dan verifikasi metadata penandatanganan (IP Address, timestamp).
   - **Payment Reconciliation (`/admin/payments`):** Audit trail transaksi Midtrans/Xendit, verifikasi settlement QRIS/VA, status refund, dan tombol konfirmasi pelunasan manual.
   - **Portfolio & Lookbook CMS (`/admin/portfolio`):** Pengelolaan foto galeri, tagging undertone kulit & venue lighting, pengaturan pasangan Before/After slider, dan urutan highlight portofolio.
+  - [x] **AI Customer Service Preset & Rules Customizer (`/admin/ai-preset`):**
+    - Konfigurasi engine model provider (`COMBO-UTAMA` via OpenAI-compatible API endpoint).
+    - Customizer Persona CS Jenni Khoe, System Prompt, dan Greeting Message.
+    - Pengaturan Tugas Khusus & Aturan Membalas (Rules & Guardrails: cek ketersediaan jadwal, penanganan booking, batasan diskon, dan edukasi skin preparation).
+    - Knowledge Base paket layanan & kisaran harga resmi (Luxury Royal Bridal, Holy Matrimony, Prewedding, Family).
+    - Integrasi WhatsApp Hotline & auto-capture data leads ke database (`ai_leads`).
+    - Widget CS interaktif floating `ChatBubble.tsx` di landing page (`/`) dengan live fallback knowledge base.
   - [x] **Sinkronisasi Dinamis CMS Portofolio & Main Page Proof:** Integrasi live Supabase ke halaman utama (`/`) untuk Before/After dual-lighting slider, Ultra-HD Texture Loupe magnifier, dan Multidimensional Lookbook matrix dengan quick toggle featured di `/admin/portfolio`. (@Prime_Agent)
   - **AI Chatbot Lead Center (`/admin/ai-leads`):** Log percakapan AI Assistant publik untuk memonitor pertanyaan calon klien dan mengekstrak lead nomor telepon/WhatsApp yang terjaring.
 - [x] Audit simulasi sandbox end-to-end: Admin login -> Review Inquiry -> Generate Quote -> Kirim WA -> Client Approve & Sign SPK -> QRIS Payment Settlement -> Auto Google Calendar Sync (@Prime_Agent)
