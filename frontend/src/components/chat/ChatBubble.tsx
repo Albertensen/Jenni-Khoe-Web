@@ -17,7 +17,7 @@ interface ClientInfo {
 }
 
 const QUICK_ACTIONS = [
-  '🗓️ Cek Jadwal & Slot Kosong',
+  '🗓️ Kalender Slot & Ketersediaan',
   '💄 Info Paket & Harga',
   '✨ Rekomendasi Riasan & Undertone',
   '📲 Hubungi WhatsApp Resmi',

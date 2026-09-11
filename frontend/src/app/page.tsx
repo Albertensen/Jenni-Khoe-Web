@@ -87,7 +87,7 @@ export default async function Home() {
           </h1>
           <nav className="flex items-center gap-6 text-xs uppercase tracking-widest text-luxury-deep-slate/80">
             <a href="#transformation" className="hover:text-luxury-rose-gold transition-colors">Portofolio</a>
-            <a href="#availability" className="hover:text-luxury-rose-gold transition-colors">Cek Jadwal</a>
+            <a href="#availability" className="hover:text-luxury-rose-gold transition-colors">Kalender Slot</a>
             <a
               href="#availability"
               className="hidden sm:inline-block border border-luxury-rose-gold text-luxury-rose-gold hover:bg-luxury-rose-gold hover:text-white px-4 py-2 rounded-full transition-all"
@@ -113,7 +113,7 @@ export default async function Home() {
               href="#availability"
               className="bg-luxury-rose-gold hover:bg-luxury-rose-gold-dark text-white text-xs font-medium tracking-widest uppercase py-3.5 px-8 rounded-full transition-all shadow-md hover:shadow-luxury-rose-gold/25"
             >
-              Cek Ketersediaan Tanggal
+              Kalender Slot & Ketersediaan Tanggal
             </a>
             <a
               href="#transformation"

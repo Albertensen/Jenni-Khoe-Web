@@ -38,7 +38,7 @@ export const faqs: FAQ[] = [
   },
   {
     question: "Bagaimana cara booking?",
-    answer: "Cek dulu ketersediaan tanggal via form 'Cek Jadwal' di website, lalu konfirmasi via WhatsApp Kak Jenni. DP 50% untuk lock date. Sisa pelunasan H-7 sebelum hari-H.",
+    answer: "Cek dulu ketersediaan tanggal via 'Kalender Slot' di website, lalu konfirmasi via WhatsApp Kak Jenni. DP 50% untuk lock date. Sisa pelunasan H-7 sebelum hari-H.",
     keywords: ["booking", "reservasi", "pesan", "daftar", "dp", "down payment", "lock date", "bayar"],
   },
   {

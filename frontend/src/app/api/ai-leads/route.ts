@@ -39,17 +39,24 @@ function normalizePhone(rawPhone: string | null | undefined): string {
   return clean;
 }
 
+export function normalizeSource(rawSource: string | null | undefined): string {
+  if (!rawSource) return "kalender_tanggal";
+  const s = rawSource.trim().toLowerCase();
+  if (s === "cek_jadwal" || s === "kalender_tanggal") return "kalender_tanggal";
+  if (s === "booking_cepat") return "booking_cepat";
+  if (s === "chatbot" || s === "chat_widget") return "chat_widget";
+  return s;
+}
+
 function getActionLabel(source: string, interest?: string, schedule_date?: string, last_message?: string): string {
-  if (source === "booking_cepat") {
+  const norm = normalizeSource(source);
+  if (norm === "booking_cepat") {
     return interest ? `Booking Cepat: ${interest}` : "Reservasi Cepat via WhatsApp";
   }
-  if (source === "cek_jadwal") {
-    return schedule_date ? `Cek & Kunci Jadwal: ${schedule_date}` : "Cek Ketersediaan Tanggal";
-  }
-  if (source === "kalender_tanggal") {
+  if (norm === "kalender_tanggal") {
     return schedule_date ? `Pilih Slot Kalender: ${schedule_date}` : "Kunci Slot Tanggal Kalender";
   }
-  if (source === "chat_widget") {
+  if (norm === "chat_widget") {
     return interest ? `Chat CS: ${interest}` : "Konsultasi Tanya Jawab AI CS";
   }
   return last_message || "Interaksi Website";
@@ -85,7 +92,7 @@ export async function GET(req: NextRequest) {
       if (currentLogs.length === 0) {
         currentLogs.push({
           timestamp: lead.created_at || new Date().toISOString(),
-          source: lead.source || "chat_widget",
+          source: normalizeSource(lead.source || "kalender_tanggal"),
           action: getActionLabel(lead.source, lead.interest, lead.schedule_date, lead.last_message),
           client_name: lead.name || "Anonim",
           note: lead.last_message || undefined,
@@ -97,6 +104,7 @@ export async function GET(req: NextRequest) {
         // Ensure each log has client_name if missing
         currentLogs = currentLogs.map((log) => ({
           ...log,
+          source: normalizeSource(log.source),
           client_name: log.client_name || lead.name || "Anonim",
         }));
       }
@@ -116,8 +124,8 @@ export async function GET(req: NextRequest) {
           schedule_time: lead.schedule_time || null,
           last_message: lead.last_message || null,
           status: lead.status || "new",
-          source: lead.source || "chat_widget",
-          sources: [lead.source || "chat_widget"],
+          source: normalizeSource(lead.source || "kalender_tanggal"),
+          sources: [normalizeSource(lead.source || "kalender_tanggal")],
           activity_log: currentLogs,
           created_at: lead.created_at || new Date().toISOString(),
           updated_at: lead.updated_at || lead.created_at || new Date().toISOString(),
@@ -145,8 +153,9 @@ export async function GET(req: NextRequest) {
         if (!existing.schedule_time && lead.schedule_time) existing.schedule_time = lead.schedule_time;
 
         // Collect all distinct sources
-        if (lead.source && !existing.sources.includes(lead.source)) {
-          existing.sources.push(lead.source);
+        const normLeadSrc = normalizeSource(lead.source);
+        if (normLeadSrc && !existing.sources.includes(normLeadSrc)) {
+          existing.sources.push(normLeadSrc);
         }
 
         // Merge activity logs
@@ -167,7 +176,7 @@ export async function GET(req: NextRequest) {
         }
         if (new Date(lead.updated_at).getTime() > new Date(existing.updated_at).getTime()) {
           existing.updated_at = lead.updated_at;
-          existing.source = lead.source;
+          existing.source = normalizeSource(lead.source);
           if (lead.last_message) existing.last_message = lead.last_message;
         }
 
@@ -260,7 +269,7 @@ export async function POST(req: NextRequest) {
 
     const cleanPhone = normalizePhone(phone);
     const nowIso = new Date().toISOString();
-    const resolvedSource = source || "chat_widget";
+    const resolvedSource = normalizeSource(source || "kalender_tanggal");
     const currentInputName = name.trim();
 
     const newActivity: ActivityLogEntry = {

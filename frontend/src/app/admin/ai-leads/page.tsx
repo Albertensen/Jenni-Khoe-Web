@@ -74,17 +74,17 @@ const SOURCE_CONFIG: Record<string, { label: string; badgeClass: string; icon: s
     badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
     icon: "🤖",
   },
-  cek_jadwal: {
-    label: "Cek Tanggal",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    icon: "🔍",
+  kalender_tanggal: {
+    label: "Kalender Slot",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: "📅",
   },
   booking_cepat: {
     label: "Booking Cepat",
     badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
     icon: "⚡",
   },
-  kalender_tanggal: {
+  cek_jadwal: {
     label: "Kalender Slot",
     badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
     icon: "📅",
@@ -162,10 +162,8 @@ export default function AiLeadsPage() {
 
     if (lead.source === "booking_cepat") {
       template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Terima kasih sudah mengisi formulir reservasi cepat di website kami${lead.interest ? ` (${lead.interest})` : ""}${lead.schedule_date ? ` untuk tanggal ${lead.schedule_date}` : ""}. Kami siap bantu cek ketersediaan slot privat dan siapkan draft invoice SPK-nya Kak.`;
-    } else if (lead.source === "kalender_tanggal") {
-      template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan permintaan penguncian tanggal ${lead.schedule_date || "pilihan Kakak"} dari kalender website kami, slot saat ini masih aman. Apakah ingin langsung kami buatkan draft reservasi DP-nya Kak?`;
-    } else if (lead.source === "cek_jadwal") {
-      template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan pengecekan ketersediaan tanggal ${lead.schedule_date || ""} di ${lead.schedule_venue || "lokasi acara Kakak"}, slot privat saat ini masih tersedia. Apakah jadwal tersebut ingin segera kita amankan Kak?`;
+    } else if (lead.source === "kalender_tanggal" || lead.source === "cek_jadwal") {
+      template = `Halo Kak ${lead.name}, saya Jenni Khoe MUA. Melanjutkan permintaan penguncian slot tanggal ${lead.schedule_date || "pilihan Kakak"} dari kalender website kami, slot privat saat ini masih aman. Apakah ingin langsung kami buatkan draft reservasi DP-nya Kak?`;
     } else if (lead.closing_stage === "Tanya Jawab Jadwal & Lokasi") {
       const details = [
         lead.schedule_date ? `tanggal ${lead.schedule_date}` : null,
@@ -225,7 +223,9 @@ export default function AiLeadsPage() {
       const matchSource =
         sourceFilter === "all" ||
         lead.source === sourceFilter ||
-        (lead.sources && lead.sources.includes(sourceFilter));
+        (sourceFilter === "kalender_tanggal" && lead.source === "cek_jadwal") ||
+        (lead.sources && lead.sources.includes(sourceFilter)) ||
+        (sourceFilter === "kalender_tanggal" && lead.sources && lead.sources.includes("cek_jadwal"));
 
       return matchSearch && matchStage && matchStatus && matchSource;
     });
@@ -240,7 +240,7 @@ export default function AiLeadsPage() {
             Prospek CS CRM & Pelacakan Closing
           </h2>
           <p className="text-xs text-luxury-deep-slate/70 mt-1">
-            Database kontak klien terpadu (anti-duplikat berbasis Nomor WhatsApp) lintas kanal Chat CS, Cek Tanggal, Booking Cepat, dan Kalender Slot.
+            Database kontak klien terpadu (anti-duplikat berbasis Nomor WhatsApp) lintas kanal Chat CS, Booking Cepat, dan Kalender Slot.
           </p>
         </div>
         <button
@@ -279,7 +279,7 @@ export default function AiLeadsPage() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-sky-900">{stats.schedule}</span>
-            <span className="text-[10px] text-sky-700">cek tanggal</span>
+            <span className="text-[10px] text-sky-700">tanya slot</span>
           </div>
         </div>
 
@@ -325,7 +325,6 @@ export default function AiLeadsPage() {
           >
             <option value="all">Semua Kanal Sumber</option>
             <option value="chat_widget">🤖 Chat CS</option>
-            <option value="cek_jadwal">🔍 Cek Tanggal</option>
             <option value="booking_cepat">⚡ Booking Cepat</option>
             <option value="kalender_tanggal">📅 Kalender Slot</option>
           </select>

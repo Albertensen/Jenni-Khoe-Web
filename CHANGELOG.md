@@ -5,6 +5,24 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 03:45 — Penyatuan Kanal "Kalender Slot" & Penghapusan Label "Cek Tanggal"
+
+### Changed
+- `src/components/CheckAvailabilityForm.tsx`:
+  - Standarisasi `source: "kalender_tanggal"` dan `interest: "Kalender Slot: [EVENT]"` pada pengiriman data prospek ke `/api/ai-leads`.
+  - Judul header diselaraskan menjadi "Kalender Slot & Kunci Tanggal Acara".
+- `src/app/admin/ai-leads/page.tsx`:
+  - Penghapusan opsi filter dan label "Cek Tanggal" (`cek_jadwal`).
+  - Kanal CRM kini fokus pada 3 sumber utama: `🤖 Chat CS`, `⚡ Booking Cepat`, dan `📅 Kalender Slot`.
+  - Pemetaan otomatis untuk data historis `cek_jadwal` menjadi badge dan filter `📅 Kalender Slot`.
+- `src/app/api/ai-leads/route.ts`:
+  - Fungsi `normalizeSource` memetakan varian sumber legacy (`cek_jadwal`, `chatbot`) secara transparan menjadi `kalender_tanggal` dan `chat_widget`.
+  - Pelabelan log aktivitas: seluruh interaksi kalender terdata seragam sebagai *Pilih Slot Kalender* / *Kunci Slot Tanggal Kalender*.
+- `src/app/page.tsx`, `src/components/chat/ChatBubble.tsx`, `src/data/faq.ts`, `src/lib/chat/system-prompt.ts`:
+  - Penyelarasan navigasi anchor dan teks rujukan dari "Cek Jadwal" menjadi "Kalender Slot".
+
+---
+
 ## 2026-09-12 03:20 — Anti-Duplikasi Kontak CRM Berbasis Nomor WhatsApp & Log Multi-Kanal Multi-Nama
 
 ### Added

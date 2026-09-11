@@ -176,7 +176,7 @@ export default function CheckAvailabilityForm() {
       );
     } catch {}
 
-    const leadNote = `Cek Jadwal & Lock Tanggal: ${formData.eventDate} (${formData.eventType.toUpperCase()}) di ${formData.city}`;
+    const leadNote = `Kunci Kalender Slot: ${formData.eventDate} (${formData.eventType.toUpperCase()}) di ${formData.city}`;
 
     // Record lead directly into Prospek CS CRM
     try {
@@ -187,12 +187,12 @@ export default function CheckAvailabilityForm() {
           session_id: sessionId,
           name: trimmedName,
           phone: trimmedPhone,
-          interest: `Cek Tanggal: ${formData.eventType.toUpperCase()}`,
+          interest: `Kalender Slot: ${formData.eventType.toUpperCase()}`,
           closing_stage: "Siap Booking / Menuju WhatsApp",
           schedule_date: formData.eventDate,
           schedule_venue: formData.city,
           last_message: leadNote,
-          source: "cek_jadwal",
+          source: "kalender_tanggal",
         }),
       });
     } catch (err) {
@@ -222,7 +222,7 @@ export default function CheckAvailabilityForm() {
           Jadwal Realtime & Reservasi Privat
         </span>
         <h3 className="font-serif text-3xl sm:text-4xl text-luxury-charcoal font-medium mt-1">
-          Cek & Kunci Tanggal Acara
+          Kalender Slot & Kunci Tanggal Acara
         </h3>
         <p className="text-xs sm:text-sm text-luxury-deep-slate/70 mt-2 font-light max-w-xl mx-auto">
           Slot privat eksklusif 1 pengantin per hari. Klik tanggal pada kalender interaktif untuk memilih slot atau lengkapi data acara Anda.
