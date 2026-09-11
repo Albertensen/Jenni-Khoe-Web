@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface Inquiry {
   id: number; name: string; email: string; phone: string;
@@ -25,7 +24,7 @@ export default function AdminInquiries() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/inquiries")
+    fetch("/api/inquiries")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setInquiries(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

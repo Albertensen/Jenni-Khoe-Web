@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface DashboardStats {
   total_inquiries: number;
@@ -22,7 +21,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/admin/stats")
+    fetch("/api/admin/stats")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.data) setStats(d.data);

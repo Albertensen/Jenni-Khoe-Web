@@ -5,6 +5,26 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 22:00 — Complete Supabase serverless integration for admin panel & API routes
+
+### Added
+- `frontend/src/app/api/admin/stats/route.ts` — live aggregation stats from Supabase
+- `frontend/src/app/api/bookings/route.ts` — bookings query joined with client details
+- `frontend/src/app/api/inquiries/route.ts` — inquiries CRUD via Supabase
+- `frontend/src/app/api/contracts/route.ts` — digital SPK contract archive queries
+- `frontend/src/app/api/payments/route.ts` — payment reconciliation queries
+- `frontend/src/app/api/schedules/route.ts` — schedule calendar slot queries
+- `frontend/src/app/api/portfolio/route.ts` & `[id]/route.ts` — portfolio CMS management and deletion
+- `frontend/src/app/api/ai-leads/route.ts` — AI chatbot leads archive queries
+
+### Changed
+- `frontend/src/middleware.ts` — local Supabase JWT verification eliminates prefetch rate limits and unexpected redirect to /login
+- `frontend/src/app/admin/*` — removed all references to `BACKEND_URL` / `localhost:8000` across all 8 admin pages
+- `frontend/src/app/api/generate-token/route.ts` — migrated from Laravel to Supabase `gated_tokens`
+- `frontend/src/app/api/leads/route.ts` — directly persists inquiries and AI leads to Supabase
+
+---
+
 ## 2026-09-11 21:30 — Update architecture & governance documentation for serverless stack
 
 ### Changed

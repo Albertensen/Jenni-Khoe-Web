@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface Booking {
   id: number; name: string; event_date: string;
@@ -27,7 +26,7 @@ export default function AdminBookings() {
   const [showToken, setShowToken] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/bookings")
+    fetch("/api/bookings")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setBookings(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

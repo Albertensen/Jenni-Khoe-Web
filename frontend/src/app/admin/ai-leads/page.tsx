@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface AiLead {
   id: number; session_id: string; messages: number;
@@ -15,7 +14,7 @@ export default function AdminAiLeads() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/ai-leads")
+    fetch("/api/ai-leads")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setLeads(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

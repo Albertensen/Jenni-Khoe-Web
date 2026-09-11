@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface Contract {
   id: number; booking_id: number; client_name: string;
@@ -16,7 +15,7 @@ export default function AdminContracts() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/contracts")
+    fetch("/api/contracts")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setContracts(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

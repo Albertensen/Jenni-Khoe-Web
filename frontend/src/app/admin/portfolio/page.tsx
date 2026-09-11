@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface PortfolioItem {
   id: number; title: string; undertone: string;
@@ -19,7 +18,7 @@ export default function AdminPortfolio() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchItems = () => {
-    fetch(BACKEND_URL + "/api/portfolio")
+    fetch("/api/portfolio")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setItems(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -38,7 +37,7 @@ export default function AdminPortfolio() {
     if (fileRef.current?.files?.[0]) fd.append("image", fileRef.current.files[0]);
 
     try {
-      const res = await fetch(BACKEND_URL + "/api/portfolio", { method: "POST", body: fd });
+      const res = await fetch("/api/portfolio", { method: "POST", body: fd });
       if (res.ok) {
         setForm({ title: "", undertone: "", venue: "", highlighted: false });
         setShowForm(false);
@@ -51,7 +50,7 @@ export default function AdminPortfolio() {
   const handleDelete = async (id: number) => {
     if (!confirm("Hapus item ini?")) return;
     try {
-      await fetch(BACKEND_URL + "/api/portfolio/" + id, { method: "DELETE" });
+      await fetch("/api/portfolio/" + id, { method: "DELETE" });
       fetchItems();
     } catch {}
   };

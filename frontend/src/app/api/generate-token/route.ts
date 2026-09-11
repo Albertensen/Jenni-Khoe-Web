@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServiceSupabase } from "@/lib/supabase";
 
-export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,26 +10,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "booking_id required" }, { status: 400 });
     }
 
-    // Forward to Laravel backend (when deployed)
-    const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
-    const resp = await fetch(`${BACKEND_URL}/api/generate-gated-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ booking_id }),
-    });
+    const supabase = getServiceSupabase();
 
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      return NextResponse.json({ success: false, message: err.message || "Backend error" }, { status: 502 });
+    // Verify booking exists
+    const { data: booking, error: bookingErr } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("id", booking_id)
+      .single();
+
+    if (bookingErr || !booking) {
+      return NextResponse.json({ success: false, message: "Booking tidak ditemukan" }, { status: 404 });
     }
 
-    const data = await resp.json();
-    const domain = process.env.NEXT_PUBLIC_APP_URL || req.headers.get("origin") || "https://jenni-khoe-mua.vercel.app";
-    const url = `${domain}/g/${data.token}`;
+    // Generate unique token
+    const token = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    return NextResponse.json({ success: true, url, token: data.token });
-  } catch (err) {
-    console.error("generate-token error:", err);
-    return NextResponse.json({ success: false, message: "Internal error" }, { status: 500 });
+    const { error: insertErr } = await supabase
+      .from("gated_tokens")
+      .insert({
+        booking_id,
+        token,
+        expires_at: expiresAt,
+      });
+
+    if (insertErr) {
+      return NextResponse.json({ success: false, message: insertErr.message }, { status: 500 });
+    }
+
+    const host = req.headers.get("host") || "jenni-khoe-mua.vercel.app";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const domain = `${protocol}://${host}`;
+    const url = `${domain}/g/${token}`;
+
+    return NextResponse.json({ success: true, url, token });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

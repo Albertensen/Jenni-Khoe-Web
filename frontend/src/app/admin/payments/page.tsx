@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface Payment {
   id: number; booking_id: number; client_name: string;
@@ -16,7 +15,7 @@ export default function AdminPayments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/payments")
+    fetch("/api/payments")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setPayments(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));

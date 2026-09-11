@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -21,7 +20,7 @@ export default function AdminSchedules() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(BACKEND_URL + "/api/schedules")
+    fetch("/api/schedules")
       .then((r) => r.ok ? r.json() : Promise.resolve({ data: [] }))
       .then((d) => { setEvents(d.data || []); setLoading(false); })
       .catch(() => setLoading(false));
