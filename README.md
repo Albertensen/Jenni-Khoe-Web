@@ -6,121 +6,103 @@
 
 ---
 
-# Jenni Khoe MUA — Web Profile & Gated Booking System
-
 Official website and booking system for Jenni Khoe Makeup Artist (MUA).
 
-## Architecture (Hybrid)
+## Architecture (Full Serverless)
+
+> **Catatan Transisi Arsitektur (2026-09-11):**
+> Arsitektur telah dimigrasikan dari standalone Laravel 11/MySQL VPS menjadi **Full Serverless** (Next.js App Router di Vercel + Supabase PostgreSQL & Auth). Tidak memerlukan VPS atau server backend terpisah.
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  Frontend (Next.js App Router) → Vercel               │
-│  ├── Public pages (hero, gallery, about, contact)     │
-│  ├── Booking flow (check date → inquiry → pay)        │
-│  └── Admin dashboard (manage bookings, calendar)       │
-├──────────────────────────────────────────────────────┤
-│  Backend (Laravel API) → VPS / Cloud Run              │
-│  ├── MySQL database (clients, bookings, payments, ...)│
-│  ├── Xendit/Midtrans payment webhook (HMAC verified)  │
-│  ├── Google Calendar sync (OAuth2 + FreeBusy API)     │
-│  └── WhatsApp notification gateway                    │
-└──────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  Next.js 15 (App Router on Vercel)                                     │
+│  ├── Public pages (Hero, Before/After slider, Galeri, Contact)        │
+│  ├── Booking flow (Cek Tanggal → Inquiry Form → Gated Token)           │
+│  ├── Serverless API Routes (`src/app/api/*`: login, chat, leads, dll)  │
+│  └── Admin Dashboard (`src/app/admin/*`: bookings, schedules, clients) │
+├────────────────────────────────────────────────────────────────────────┤
+│  Supabase (Cloud PostgreSQL 17 + Auth + Storage)                       │
+│  ├── Database: PostgreSQL 17 with Row Level Security (RLS)             │
+│  │   (clients, bookings, quotations, contracts, payments, schedules)   │
+│  ├── Authentication: Supabase Auth (admin role, session JWT)           │
+│  └── Storage: Supabase Storage Buckets (portfolio, contract signatures)│
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Tech Stack
 
 | Layer | Tech | Deploy |
 |-------|------|--------|
-| Frontend | Next.js (App Router) + Tailwind CSS | Vercel |
-| Backend | Laravel 11 + PHP 8.3 | VPS / Cloud Run |
-| Database | MySQL 8.0 | Cloud SQL / RDS |
-| Payment | Midtrans / Xendit (QRIS, VA) | Webhook verified |
-| Calendar | Google Calendar API (OAuth2 + FreeBusy) | Socialite |
-| Notification | WhatsApp Cloud API / WA Gateway | |
+| Frontend & API Routes | Next.js 15 (App Router) + Tailwind CSS v4 | Vercel (`jenni-khoe-mua`) |
+| Database & Auth | Supabase PostgreSQL 17 + Supabase Auth | Supabase Cloud (`ap-southeast-1`) |
+| Storage & Media | Supabase Storage (WebP/AVIF) | Supabase Cloud |
+| Payment Gateway | Midtrans / Xendit (QRIS, VA) | Webhook verified |
+| Calendar | Google Calendar API (OAuth2 + FreeBusy) | Next.js API Route |
+| Notification | WhatsApp Cloud API / WA Gateway | Webhook / API Dispatcher |
+| AI Chat | Groq Cloud SDK (`llama-3.3-70b-versatile`) | Serverless API Route |
 
 ## Repo Structure
 
 ```
 /
-├── frontend/          # Next.js App Router
-│   ├── public/        # WebP assets, fonts
+├── frontend/             # Next.js 15 App Router (Root Vercel Deployment)
+│   ├── public/           # WebP assets, fonts
 │   └── src/
-│       ├── app/       # Pages & routes
-│       ├── components/  # Reusable components
-│       └── lib/       # Utilities, API client
-├── backend/           # Laravel API
-│   ├── app/
-│   │   ├── Http/Controllers/
-│   │   ├── Models/
-│   │   └── Jobs/      # SyncCalendarBooking, WhatsAppNotif
-│   ├── database/migrations/
-│   └── routes/api.php
-├── docs/              # Project documentation
+│       ├── app/          # App Router (pages & serverless api routes)
+│       │   ├── admin/    # Protected Admin Dashboard
+│       │   ├── api/      # Next.js Route Handlers (auth, chat, leads, etc.)
+│       │   ├── g/        # Gated routes
+│       │   └── login/    # Admin Login page
+│       ├── components/   # Reusable UI components & luxury design system
+│       ├── lib/          # Utilities, Supabase client (`src/lib/supabase.ts`)
+│       └── middleware.ts # Supabase token session verification & route protection
+├── backend/              # Legacy Laravel 11 API reference & business logic
+├── docs/                 # Project documentation & governance
 │   ├── ROADMAP.md
 │   ├── ARCHITECTURE.md
 │   ├── DESIGN_SYSTEM.md
 │   ├── WORKFLOW.md
 │   ├── AGENTS.md
 │   └── CHECKLIST.md
+├── supabase_schema.sql   # PostgreSQL DDL with RLS for Supabase
 ├── README.md
-└── .env.example
+└── CHANGELOG.md
 ```
 
 ## Local Setup
 
 ### Prerequisites
-- PHP 8.3 + Composer
 - Node 22 + npm
-- MySQL 8.0
+- Akun Supabase (project URL & anon key)
 
-### Backend
-```bash
-cd backend
-cp .env.example .env
-# Fill DB credentials, API keys, webhook tokens
-composer install
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
-```
-
-### Frontend
+### Setup Frontend
 ```bash
 cd frontend
 npm install
 cp .env.example .env.local
-# Fill NEXT_PUBLIC_API_URL=http://localhost:8000/api
+# Isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm run dev
 ```
+
+Buka `http://localhost:3000`.
 
 ## Environment Variables (Required)
 
 | Key | Source | Used By |
 |-----|--------|---------|
-| `DB_*` | MySQL | Backend |
-| `XENDIT_SECRET_KEY` | Xendit Dashboard | Backend |
-| `XENDIT_WEBHOOK_TOKEN` | Xendit Callback Settings | Backend |
-| `GOOGLE_OAUTH_CLIENT_ID` | Google Cloud Console | Backend |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Google Cloud Console | Backend |
-| `GOOGLE_CALENDAR_ID` | Google Calendar Settings | Backend |
-| `WA_API_KEY` | WhatsApp Gateway Provider | Backend |
-| `NEXT_PUBLIC_API_URL` | - | Frontend |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project Settings -> API | Frontend & API Routes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Project Settings -> API | Frontend & API Routes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Project Settings -> API | Next.js Server API Routes |
+| `GROQ_API_KEY` | Groq Cloud Console | AI Assistant Chat API |
+| `NEXT_PUBLIC_APP_URL` | Domain production/local | Absolute URLs & callbacks |
+
+Kredensial aktif workspace disimpan di `.workspace.env` (dijaga oleh `.gitignore`).
 
 ## Documentation
 
-All project specs in `docs/`:
-- **[ROADMAP.md](docs/ROADMAP.md)** — 6-phase milestone plan
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — DB schema, state machine, webhook, calendar sync
-- **[DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)** — Tailwind tokens, components, layout
-- **[WORKFLOW.md](docs/WORKFLOW.md)** — Git conventions, audit gate, deploy
-- **[AGENTS.md](docs/AGENTS.md)** — Team roles & token-saving protocol
-- **[CHECKLIST.md](docs/CHECKLIST.md)** — DoD checklist per phase
-
-## Multi-Agent Team
-
-| Agent | Role |
-|-------|------|
-| @hermes | System Architect |
-| @gemini | UI/UX Engineer |
-| @qwen | Fullstack Worker |
-| @qa_testing | DevOps & QA |
+- **[ROADMAP.md](docs/ROADMAP.md)** — Master roadmap & milestone plan
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Database schema, Supabase auth, state machine, webhook
+- **[DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)** — Design tokens, components, luxury aesthetic
+- **[WORKFLOW.md](docs/WORKFLOW.md)** — Git convention, audit gate, deploy protocol
+- **[AGENTS.md](docs/AGENTS.md)** — Governance & multi-agent rules
+- **[CHECKLIST.md](docs/CHECKLIST.md)** — Definition of Done checklist

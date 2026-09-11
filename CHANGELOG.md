@@ -5,6 +5,18 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 21:30 — Update architecture & governance documentation for serverless stack
+
+### Changed
+- `README.md` — updated architecture diagram, tech stack, and setup guides to Next.js + Supabase
+- `CORE.md` — updated workspace, remote, and runtime specs to reflect Supabase serverless
+- `docs/ARCHITECTURE.md` — full rewrite of database DDL tables, Supabase Auth flow, and Next.js route handlers
+- `docs/ROADMAP.md` — updated tech stack specs and milestone items for Supabase PostgreSQL
+- `docs/WORKFLOW.md` — updated audit gate, Vercel rootDirectory, and deploy protocol
+- `docs/SESSION_STATUS.md` — added complete handoff notes, active credentials, and next-agent guidelines
+
+---
+
 ## 2026-09-11 21:00 — Migrate auth & database architecture to Supabase serverless
 
 ### Added

@@ -5,9 +5,9 @@
 ### Branching Policy
 | Branch | Purpose | Protection |
 |--------|---------|------------|
-| `main` | Production | Protected — no direct push. PR only + audit pass |
-| `dev` | Staging/Integration | Push allowed. CI gate required |
-| `feat/*` | Feature branches | Branch from `dev`. PR → `dev` via squash |
+| `main` | Production | Aktif tersinkron dengan remote GitHub |
+| `dev` | Staging/Integration | Push allowed |
+| `feat/*` | Feature branches | Branch dari `dev` atau `main` |
 
 ### Commit Convention (Conventional Commits)
 ```
@@ -22,56 +22,29 @@ docs: add ERD schema to ARCHITECTURE.md
 - Subject ≤72 chars, lowercase, no trailing period
 - Body optional — only if extra context needed
 - 1 commit = 1 logical change (atomic)
+- Dilarang `git add .` atau `git add -A`. Hanya stage file yang disentuh (`git add <file>`)
 
-### Merge Strategy
-- Feature → dev: squash merge
-- Dev → main: PR + audit + merge commit
+## 2. Audit Gate
 
-## 2. Audit Gate (@Qa Testing)
-
-### Gate Triggers
-- Every push to `dev`
-- Every PR targeting `main`
-
-### Mandatory Checks
+### Mandatory Checks Sebelum Commit/Deploy
 | Check | Command | Failure |
 |-------|---------|---------|
-| TypeScript | `tsc --noEmit` | Zero errors required |
-| ESLint | `eslint . --max-warnings 0` | Zero warnings |
-| Prettier | `prettier --check .` | Formatting lock |
-| API Response Shape | curl test on sample endpoints | 200/403 JSON shape must match spec |
-
-### Audit Protocol
-1. Run all checks sequentially
-2. **First failure stops immediately**
-3. Report format:
-   ```
-   [AUDIT: FAILED] eslint: src/components/BeforeAfterSlider.tsx line 47
-   `position` variable unused — remove or implement
-   ```
-4. Error forwarded to @qwen for fix
-5. No re-check until @qwen reports fix committed
+| TypeScript & Build | `cd frontend && npm run build` | Zero errors required |
+| ESLint | `cd frontend && npm run lint` | Zero warnings |
+| Auth Check | Test login endpoint `/api/login` | HTTP 200 required |
 
 ## 3. Deploy Protocol
 
-### Frontend (Next.js) → Vercel
-```
-cd frontend
-vercel --prod
-```
+### Architecture: Full Serverless
+- Frontend & Route Handlers: **Vercel** (`jenni-khoe-mua`)
+- Database & Auth: **Supabase** (`ap-southeast-1`)
+- Tidak memerlukan deploy manual ke VPS. Setiap `git push origin main` memicu auto-build dan auto-deploy Vercel.
 
-Requirements:
-- `vercel.json` at `frontend/` root
-- Environment variables sourced from `.env.production` (gitignored)
-- Build command: `next build`
+### Vercel Deployment Settings
+- **Root Directory**: `frontend`
+- **Framework**: Next.js (App Router)
+- **Environment Variables**: Disinkronkan via Vercel Project Settings / API (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GROQ_API_KEY`)
 
-### Backend (Laravel API)
-- Server: VPS / Cloud Run (manual setup per @hermes spec)
-- Deploy via git tag: `git tag prod-v1.0.0 && git push origin prod-v1.0.0`
-- Post-deploy: `php artisan migrate --force && php artisan queue:restart`
-
-### Env Setup
-```
-cp .env.example .env
-# Fill secrets: DB, XENDIT_WEBHOOK_TOKEN, GOOGLE_OAUTH, GOOGLE_CALENDAR_ID, WA_API_KEY
-```
+### Database Migrations (Supabase)
+- Skema disimpan di `supabase_schema.sql`
+- Dijalankan via Supabase SQL Editor di dashboard atau Supabase Management API

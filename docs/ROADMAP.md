@@ -3,10 +3,10 @@
 ## Modern Tech Stack & Architecture (2026 Standard)
 - **Frontend:** Next.js 15 (App Router, Server Actions), React 19, Tailwind CSS v4, Framer Motion, Lenis Smooth Scroll
 - **Visual & Canvas Engine:** Canvas Texture Magnifier (Ultra-HD micro-zoom), Smooth Image Comparison Slider
-- **Backend API & Data:** Laravel 11 API (PHP 8.3), MySQL 8, Redis (Queue & Webhook Processing)
+- **Backend & Database:** Next.js 15 Serverless Route Handlers (`app/api/*`) + Supabase PostgreSQL 17 + Supabase Auth
 - **Storage & Media:** Cloudinary / Supabase Storage (Auto-format WebP/AVIF, Blurhash generation)
 - **Payments & Integrations:** Midtrans / Xendit Core API (Snap, QRIS Realtime, Virtual Account with HMAC-SHA256), Google Calendar API (FreeBusy sync), WhatsApp Business Gateway
-- **Infrastructure & CI/CD:** Vercel (Frontend), VPS / Cloud Server (Backend & Workers), GitHub Actions
+- **Infrastructure & CI/CD:** Vercel (Frontend & Serverless API Routes), Supabase Cloud (`ap-southeast-1`), GitHub Actions
 
 ---
 
@@ -60,12 +60,12 @@
 ---
 
 ### Phase 5: Database Architecture, Gated Logic & Closing Engine
-- [x] Migrasi database MySQL lengkap (tabel clients, bookings, quotations, contracts, payments, schedules, logs) (@Prime_Agent -> @Qwen_Worker)
+- [x] Migrasi database Supabase PostgreSQL 17 lengkap dengan RLS (10 tabel terpasang via `supabase_schema.sql`) (@Prime_Agent)
 - [x] **State Machine Enforcement:** BookingStateMachine service di level service layer (`inquiry` -> `negotiation` -> `approved` -> `down_payment` / `paid` -> `confirmed`) (@Prime_Agent -> @Qwen_Worker)
 - [x] **Gated Route Cryptographic Generator:** GatedToken model + GatedRouteService + controller sekali pakai (`/g/{signed_token}`) dengan TTL (Time To Live) 24–48 jam (@Prime_Agent -> @Qwen_Worker)
 - [x] Audit skema database, foreign keys, indeks transaksi, dan validasi request sanitization (@Prime_Agent)
 
-#### Detail Skema Database (MySQL 8)
+#### Detail Skema Database (Supabase PostgreSQL 17 with RLS)
 - **clients:** `id, name, email, phone, instagram_handle, wedding_date, created_at`
 - **bookings:** `id, client_id, service_package, event_date, venue, guest_count, status ENUM('inquiry','negotiation','approved','hold_expired','down_payment','paid','confirmed','cancelled'), total_amount, dp_amount, hold_expires_at, notes, created_at, updated_at`
 - **quotations:** `id, booking_id, quote_number, base_items (JSON), selected_addons (JSON), subtotal, discount, grand_total, dp_required, valid_until, status ENUM('draft','sent','accepted','expired'), pdf_path, created_at`
@@ -91,7 +91,7 @@
 - [x] **Google Calendar Bi-Directional Sync:** Cek bentrok via FreeBusy API dan auto-create event saat status booking masuk ke `down_payment` atau `paid` (@Prime_Agent -> @Qwen_Worker)
 - [x] **WhatsApp Automated Messenger:** Notifikasi konfirmasi otomatis terkirim beserta file PDF invoice dan jadwal resmi (@Prime_Agent -> @Qwen_Worker)
 - [x] **Admin Command Portal (`/admin` Architecture):**
-  - **Auth & Access Gatekeeper:** Secure Admin Authentication (Laravel Sanctum token + HTTP-only cookies di Next.js middleware) dengan proteksi brute-force login.
+  - **Auth & Access Gatekeeper:** Secure Admin Authentication (Supabase Auth JWT + HTTP-only cookies di Next.js middleware `src/middleware.ts`).
   - **Operational Dashboard (`/admin/dashboard`):** Matriks analitik real-time (Gross Revenue bulanan, Total Booking Aktif, Rasio Konversi Inquiry->Closing, Kalender Mini Jadwal Terdekat).
   - **Inquiry & Lead Management Pipeline (`/admin/inquiries`):** Tampilan Kanban Board interaktif & Tabel Data (Filter: Tanggal Acara, Lookbook, Status State Machine) lengkap dengan Quick Action Chat WhatsApp.
   - **1-Click Quotation & Gated Link Generator (`/admin/bookings/[id]/quote`):** Form admin untuk memilih paket dasar, mencentang add-ons custom, menetapkan diskon/markup, dan langsung menghasilkan tautan privat `/g/{token}` beserta pesan WhatsApp siap kirim.

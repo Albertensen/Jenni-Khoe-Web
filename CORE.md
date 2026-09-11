@@ -7,73 +7,58 @@
 
 ## 1. Workspace
 
-| Item | Path |
-|------|------|
+| Item | Path / Detail |
+|------|---------------|
 | Project root | `C:\Users\Administrator\Documents\WEB MUA` |
-| Frontend | `frontend/` (Next.js App Router + Tailwind) |
-| Backend | `backend/` (Laravel 11 API) |
+| Frontend | `frontend/` (Next.js 15 App Router + Tailwind CSS v4) |
+| Backend & DB | **Full Serverless**: Supabase (PostgreSQL 17, Auth, Storage) |
+| Vercel Deployment | Root directory: `frontend` |
+| Legacy Reference | `backend/` (Laravel 11 API reference logic) |
 | Docs | `docs/` |
-| Sub-agent tasks | `.subagent/tasks/` |
-| Sub-agent outputs | `.subagent/outputs/` |
+| SQL Schema | `supabase_schema.sql` (PostgreSQL DDL with RLS) |
 
-## 2. Remote
+> **Arsitektur Aktif (Per 2026-09-11):**
+> Sistem beroperasi secara **Full Serverless** di Vercel + Supabase (`ap-southeast-1`).
+> Autentikasi menggunakan **Supabase Auth** (`admin@jennikhoe.com`).
+> Tidak ada VPS atau server PHP backend yang perlu dijalankan.
 
-| Layanan | URL / Detail |
+## 2. Remote & Layanan Cloud
+
+| Layanan | Detail / URL |
 |---------|-------------|
-| GitHub | `https://github.com/Albertensen/Jenni-Khoe-Web.git` |
-| Vercel | Team REBAHAN, project `jenni-khoe-mua` |
-| Vercel Production | `https://jenni-khoe-ggkh66nc8-rebahan.vercel.app` |
+| GitHub | `https://github.com/Albertensen/Jenni-Khoe-Web.git` (branch `main`) |
+| Vercel | Project `jenni-khoe-mua` (Production: `https://jenni-khoe-mua.vercel.app`) |
+| Supabase | Project `Jenni Khoe MUA` (`yegyiqyqtcbvjjqxvyto`, Region: `ap-southeast-1`) |
+| Credentials | Tersimpan di `.workspace.env` (JANGAN DI-COMMIT) |
 
 ## 3. Wajib Dibaca Sebelum Kerja
 
 | Dokumen | Isi |
 |---------|-----|
 | `docs/AGENTS.md` | Roles, authority, token-saving protocol, dispatch rules |
-| `docs/ARCHITECTURE.md` | DB schema, API design, state machine |
+| `docs/ARCHITECTURE.md` | Supabase schema, API design, state machine, webhook |
 | `docs/ROADMAP.md` | Milestones, phase order, target |
 | `docs/WORKFLOW.md` | Git convention, audit gate, deploy |
 | `docs/CHECKLIST.md` | Definition of Done per phase |
 | `docs/DESIGN_SYSTEM.md` | Design tokens, components, layout |
-| `docs/SESSION_STATUS.md` | Session handoff status (buat dibaca antar sesi) |
+| `docs/SESSION_STATUS.md` | Session handoff status (update antar sesi) |
 | **`CHANGELOG.md`** | Log progress — **wajib diupdate setiap ada perubahan** |
 | **`CORE.md`** (ini) | Entry point — baca pertama |
 
 ## 4. Aturan Kerja
 
 ### Priority
-1. Baca CORE.md
+1. Baca CORE.md & docs/SESSION_STATUS.md
 2. Baca ROADMAP.md — kerjakan sesuai urutan phase
 3. Update CHANGELOG.md setiap selesai task
-4. Ikuti WORKFLOW.md untuk git commit
+4. Ikuti WORKFLOW.md untuk git commit & deploy
 
-### Code Generation
-- Semua kode dikerjakan sub-agent (`qwen2.5-coder-14b-instruct` via LM Studio localhost:1234/v1)
-- 1 file = 1 dispatch (AGENTS.md sect4)
-- Audit tiap output sebelum commit
-
-### Git
-- Branch `main` dilindungi
-- Kerja di branch `dev` atau `feat/*`
-- Commit pakai conventional commits (WORKFLOW.md sect1)
-- File baru wajib di-`git add` spesifik, jangan `git add -A`
+### Git & Deploy
+- Branch `main` sinkron dengan upstream
+- Commit pakai conventional commits (`feat:`, `fix:`, `chore:`)
+- File baru wajib di-`git add <file>` secara spesifik, jangan `git add .` atau `git add -A`
+- **Tiap selesai task**: Audit -> Git commit atomik -> Push ke `origin main` -> Deploy Vercel
 
 ### Update Log
 - **CHANGELOG.md** diupdate tiap ada progress (apa yang selesai, waktu, file)
-- **CORE.md** diupdate hanya jika ada perubahan struktural (path baru, remote baru)
-
----
-
-*Terakhir update: 2026-09-05*
-
-
-## 5. Wajib: Push + Deploy Setiap Task Selesai
-
-Setiap kali selesai task (file baru / perubahan / fix), **wajib**:
-1. **Audit** — pastikan tidak error, tidak placeholder, hasil sesuai spec
-2. **Git add + commit** — hanya file yang kamu ubah (`git add <file>`), pakai conventional commit
-3. **Git push** ke `origin main` — agar saya bisa cek perubahan di GitHub
-4. **Vercel deploy** — jalankan `vercel --prod --token ...` untuk frontend
-5. **Update CHANGELOG.md** — catat apa yang selesai, jam, file yang diubah
-
-> Aturan ini tidak bisa ditawar. Tidak ada "nanti aja" atau "besok push".
-> Selesai task = push & deploy dalam sesi yang sama.
+- **CORE.md** diupdate jika ada perubahan arsitektur atau remote
