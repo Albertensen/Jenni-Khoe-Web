@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
-import type { SkinUndertone, VenueLighting } from '@/types/portfolio';
-import { portfolioItems } from '@/data/portfolio';
+import type { SkinUndertone, VenueLighting, PortfolioItem } from '@/types/portfolio';
+import { portfolioItems as fallbackItems } from '@/data/portfolio';
 
 const undertones: { value: SkinUndertone | 'all'; label: string }[] = [
   { value: 'all', label: 'All Undertones' },
@@ -20,20 +20,28 @@ const lightings: { value: VenueLighting | 'all'; label: string }[] = [
   { value: 'studio', label: 'Studio Flash' },
 ];
 
-export default function LookbookMatrix() {
+interface LookbookMatrixProps {
+  initialItems?: PortfolioItem[];
+}
+
+export default function LookbookMatrix({ initialItems }: LookbookMatrixProps) {
   const [undertone, setUndertone] = useState<SkinUndertone | 'all'>('all');
   const [lighting, setLighting] = useState<VenueLighting | 'all'>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const items = useMemo(() => {
+    return initialItems && initialItems.length > 0 ? initialItems : fallbackItems;
+  }, [initialItems]);
+
   const filtered = useMemo(() => {
-    return portfolioItems.filter((item) => {
+    return items.filter((item) => {
       if (undertone !== 'all' && item.skinUndertone !== undertone) return false;
       if (lighting !== 'all' && item.venueLighting !== lighting) return false;
       return true;
     });
-  }, [undertone, lighting]);
+  }, [items, undertone, lighting]);
 
-  const selected = selectedId ? portfolioItems.find((i) => i.id === selectedId) : null;
+  const selected = selectedId ? items.find((i) => i.id === selectedId) : null;
 
   return (
     <section className="w-full px-6 py-16">
@@ -91,7 +99,7 @@ export default function LookbookMatrix() {
               className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-luxury-champagne/30 shadow-lg transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] cursor-pointer text-left"
             >
               <Image
-                src={item.afterImgs[0]!.studio}
+                src={item.afterImgs?.[0]?.studio || item.afterImgs?.[0]?.natural || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop'}
                 alt={item.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -133,7 +141,7 @@ export default function LookbookMatrix() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-xl">
                   <Image
-                    src={selected.afterImgs[0]!.studio}
+                    src={selected.afterImgs?.[0]?.studio || selected.afterImgs?.[0]?.natural || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop'}
                     alt={selected.title}
                     fill
                     className="object-cover"

@@ -5,6 +5,18 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 23:15 — Dynamic CMS Portfolio & Main Page Visual Proof Synchronization
+
+### Added
+- Database migration on Supabase `portfolio_items` adding columns: `category`, `bride_name`, `description`, `venue_lighting`, `before_image_path`, `after_natural_image_path`, `texture_image_path`, `is_featured_before_after`, and `is_featured_texture`.
+- `frontend/src/app/api/portfolio/route.ts` — extended GET, POST, and PATCH to support full portfolio attributes, multi-image upload / URL handling, and quick featured toggling.
+- `frontend/src/app/admin/portfolio/page.tsx` — upgraded CMS interface with multi-image inputs (Main After Studio, Before, After Natural Light, Ultra-HD Texture), category & lighting select, and 1-click toggles for "Main B/A Slider" and "Main Texture".
+- `frontend/src/components/portfolio/LookbookMatrix.tsx` — added `initialItems` prop to render dynamic Supabase portfolio records with graceful static fallback.
+- `frontend/src/app/page.tsx` — integrated live Supabase fetching with ISR (`revalidate = 60`), binding the featured Before/After transformation slider and Ultra-HD texture inspection loupe dynamically to active database records.
+- `docs/ROADMAP.md` — added and marked dynamic portfolio CMS synchronization task as completed in Phase 7.
+
+---
+
 ## 2026-09-11 22:30 — Fix admin redirect bug caused by viewport prefetching of logout link
 
 ### Fixed
