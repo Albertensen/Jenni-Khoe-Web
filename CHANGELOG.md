@@ -5,6 +5,18 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 02:45 — Penggabungan Cek Ketersediaan Tanggal & Kalender Slot Realtime
+
+### Changed
+- `frontend/src/components/CheckAvailabilityForm.tsx` — Menyatukan formulir cek ketersediaan dan kalender slot realtime menjadi 1 modul utuh:
+  - **Sisi Kiri (Kalender Interaktif)**: Navigasi bulan, grid tanggal dengan status ketersediaan (hijau = tersedia, abu = terbooking, kuning = hold), dan highlight tanggal terpilih. Calon klien bisa langsung klik tanggal yang diinginkan di kalender.
+  - **Sisi Kanan (Formulir Reservasi Tanggal)**: Sinkronisasi dua arah otomatis dengan tanggal yang diklik pada kalender. Meminta Nama Calon Klien & No WhatsApp aktif (wajib), kategori acara, dan kota/venue.
+  - **Aksi 1-Klik**: Tombol *Lock Tanggal via WhatsApp Resmi* otomatis mencatat prospek ke CRM `ai_leads` (`source: 'cek_jadwal'`), menyimpan session ke `localStorage`, dan mengarahkan ke WhatsApp resmi Kak Jenni.
+- `frontend/src/app/page.tsx` — Menghapus penumpukan `<DateCalendar />` terpisah di halaman utama sehingga layout menjadi rapi dan terpusat.
+- `frontend/src/components/DateCalendar.tsx` — Di-refactor menjadi shim re-export ke `CheckAvailabilityForm` untuk menjaga kompatibilitas.
+
+---
+
 ## 2026-09-12 02:25 — Removal of Price Details from CS Chat & Quick Booking (WhatsApp-Only Pricelist Policy)
 
 ### Changed

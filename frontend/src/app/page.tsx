@@ -4,7 +4,6 @@ import LookbookMatrix from "@/components/portfolio/LookbookMatrix";
 import TextureLoupe from "@/components/portfolio/TextureLoupe";
 import BeforeAfterSlider2 from "@/components/portfolio/BeforeAfterSlider2";
 import BrideStories from "@/components/portfolio/BrideStories";
-import DateCalendar from "@/components/DateCalendar";
 import WhatsAppDispatcher from "@/components/WhatsAppDispatcher";
 import { getServiceSupabase } from "@/lib/supabase";
 import type { PortfolioItem } from "@/types/portfolio";
@@ -183,7 +182,6 @@ export default async function Home() {
         {/* Check Availability Section */}
         <section id="availability" className="w-full px-6 py-16 bg-luxury-champagne-light/40 border-t border-luxury-champagne/30 flex flex-col items-center">
           <CheckAvailabilityForm />
-          <DateCalendar />
           <WhatsAppDispatcher />
         </section>
 
