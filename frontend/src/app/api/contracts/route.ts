@@ -7,36 +7,62 @@ export async function GET() {
   try {
     const supabase = getServiceSupabase();
 
-    // 1. Auto-reconciliation: ensure any signed bookings/deals are preserved in contracts archive
+    // 1. Auto-reconciliation: heal missing contract records from bookings without overwriting existing terms
     try {
+      // Get existing SPK numbers already in contracts
+      const { data: existingContracts } = await supabase
+        .from("contracts")
+        .select("spk_number");
+
+      const existingSpkSet = new Set((existingContracts || []).map((c) => c.spk_number));
+
       const { data: unsyncedBookings } = await supabase
         .from("bookings")
         .select("id, deal_id, spk_number, client_signature, signed_at, service_package, event_date, venue, clients(name, phone)")
         .not("spk_number", "is", null);
 
       if (unsyncedBookings && unsyncedBookings.length > 0) {
+        // Fetch active T&C template as fallback for new entries
+        let fallbackTerms = "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.";
+        try {
+          const { data: activeTnc } = await supabase
+            .from("spk_tnc_settings")
+            .select("content")
+            .eq("is_active", true)
+            .order("id", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (activeTnc?.content) {
+            fallbackTerms = activeTnc.content;
+          }
+        } catch {
+          // ignore
+        }
+
         for (const b of unsyncedBookings) {
-          if (!b.spk_number) continue;
+          if (!b.spk_number || existingSpkSet.has(b.spk_number)) {
+            // Already preserved in contracts - do NOT overwrite!
+            continue;
+          }
+
           await supabase
             .from("contracts")
-            .upsert(
-              {
-                booking_id: b.id,
-                deal_id: b.deal_id || null,
-                spk_number: b.spk_number,
-                client_name: (b.clients as any)?.name || "Klien",
-                client_phone: (b.clients as any)?.phone || "-",
-                service_package: b.service_package || "Bridal Makeup Exclusive",
-                event_date: b.event_date || "-",
-                venue: b.venue || "Venue Sesuai Kesepakatan",
-                client_signature_data: b.client_signature || null,
-                signed_at: b.signed_at || new Date().toISOString(),
-                signed_ip: "127.0.0.1",
-                terms_content: "Surat Perjanjian Kerja (SPK) Layanan Tata Rias Pengantin Jenni Khoe MUA.",
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "spk_number" }
-            );
+            .insert({
+              booking_id: b.id,
+              deal_id: b.deal_id || null,
+              spk_number: b.spk_number,
+              client_name: (b.clients as any)?.name || "Klien",
+              client_phone: (b.clients as any)?.phone || "-",
+              service_package: b.service_package || "Bridal Makeup Exclusive",
+              event_date: b.event_date || "-",
+              venue: b.venue || "Venue Sesuai Kesepakatan",
+              client_signature_data: b.client_signature || null,
+              signed_at: b.signed_at || new Date().toISOString(),
+              signed_ip: "127.0.0.1",
+              terms_content: fallbackTerms,
+              updated_at: new Date().toISOString(),
+            });
         }
       }
     } catch (healErr) {
