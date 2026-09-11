@@ -5,6 +5,25 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 02:25 — Removal of Price Details from CS Chat & Quick Booking (WhatsApp-Only Pricelist Policy)
+
+### Changed
+- `src/components/WhatsAppDispatcher.tsx` (Booking Cepat):
+  - Menghapus seluruh nominal harga rupiah (Rp) dari daftar opsi paket.
+  - Mempertahankan deskripsi fokus layanan:
+    - *Luxury Royal Bridal (Akad + Resepsi, Full Retouch & Standby)*
+    - *Intimate / Holy Matrimony (1 Sesi Riasan Sakral & Touch-up)*
+    - *Engagement / Prewedding Photoshoot*
+    - *Family, Bridesmaid & Pengiring Pengantin*
+  - Menambahkan catatan ke calon klien: *Pricelist resmi & penawaran khusus akan langsung dikirimkan oleh Kak Jenni melalui WhatsApp setelah formulir terkirim.*
+- `src/app/api/chat/route.ts`, `src/lib/chat/system-prompt.ts`, dan Database Supabase `ai_chat_presets` (id=1):
+  - Menghapus seluruh angka harga pada info paket (`packages_info`), rekomendasi paket otomatis, dan smart fallback intent harga/paket.
+  - Menerapkan aturan ketat: AI CS hanya menjelaskan cakupan fasilitas & keunggulan layanan paket, lalu secara elegan mengarahkan calon klien untuk menerima katalog PDF pricelist resmi lengkap via WhatsApp resmi Kak Jenni.
+- `src/data/faq.ts`: Memperbarui jawaban FAQ harga riasan pengantin & wisuda/party agar bebas dari angka harga dan mengarahkan konsultasi pricelist langsung ke WhatsApp.
+- `src/app/admin/ai-preset/page.tsx` & `src/app/api/admin/chat-preset/route.ts`: Menghapus nominal harga dari preset default admin.
+
+---
+
 ## 2026-09-12 02:00 — Universal Pre-WhatsApp Gating & Multi-Touchpoint CRM Tracking
 
 ### Added

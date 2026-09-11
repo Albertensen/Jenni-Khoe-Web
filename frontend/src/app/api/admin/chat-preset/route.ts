@@ -18,7 +18,7 @@ const DEFAULT_PRESET = {
   greeting_message: 'Halo Kak! Selamat datang di Jenni Khoe MUA. Saya asisten virtual Jenni Khoe, siap membantu konsultasi jadwal, rekomendasi riasan, paket bridal, dan booking privat untuk hari bahagia Kakak.',
   whatsapp_number: '6281234567890',
   whatsapp_text_template: 'Halo Kak Jenni Khoe, saya ingin konsultasi booking jadwal makeup.',
-  packages_info: 'Paket Utama Jenni Khoe MUA:\n1. Luxury Royal Bridal: Rp 12.000.000 (Makeup & Hairdo Pengantin Akad + Resepsi, Retouch stand by, Free Mother of the Bride, Flawless complexion 18 jam, Premium false lashes & skin prep luxury).\n2. Intimate / Holy Matrimony: Rp 7.500.000 (Makeup & Hairdo Pengantin 1 sesi, Natural radiant finish, Free touch-up kit).\n3. Engagement / Prewedding: Rp 4.500.000 (Makeup & Hairdo 1 look glam / natural, Touch-up kit).\n4. Family / Bridesmaid: Rp 1.500.000 / pax.\nCakupan: Jabodetabek, Bandung, Bali, dan Destination Wedding seluruh Indonesia.',
+  packages_info: 'Paket Utama Layanan Jenni Khoe MUA:\n1. Luxury Royal Bridal: Riasan Pengantin Akad + Resepsi, Retouch standby seharian, Free makeup Ibu Pengantin, Flawless complexion tahan 18 jam, Premium false lashes & skin prep luxury.\n2. Intimate / Holy Matrimony: Riasan Pengantin 1 sesi sakral, Natural radiant finish, Free touch-up kit.\n3. Engagement / Prewedding: Riasan 1 look glam/natural untuk photoshoot atau lamaran, Touch-up kit.\n4. Family & Bridesmaid: Layanan riasan keluarga inti & bridesmaid.\nCakupan layanan: Jabodetabek, Bandung, Bali, dan Destination Wedding seluruh Indonesia.\nPENTING: Seluruh katalog harga & pricelist resmi lengkap hanya dikirimkan via WhatsApp resmi.',
   auto_capture_leads: true,
 };
 

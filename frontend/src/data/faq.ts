@@ -8,7 +8,7 @@ export interface FAQ {
 export const faqs: FAQ[] = [
   {
     question: "Berapa harga paket riasan pengantin?",
-    answer: "Paket riasan pengantin mulai dari Rp 3.500.000 (bridal basic) hingga Rp 8.500.000 (bridal premium + trial). Detail harga lengkap bisa dicek di halaman Portfolio atau langsung chat Kak Jenni.",
+    answer: "Untuk menjaga eksklusivitas dan menyesuaikan kebutuhan konsep acara Kakak (lokasi, jumlah look riasan, dan fasilitas pendukung), katalog pricelist resmi lengkap hanya kami bagikan secara personal melalui WhatsApp resmi Kak Jenni. Kami memiliki paket Luxury Royal Bridal, Intimate Holy Matrimony, Engagement, hingga Family & Bridesmaid.",
     keywords: ["harga", "price", "cost", "paket", "bridal", "mahal", "murah", "biaya"],
   },
   {
@@ -33,7 +33,7 @@ export const faqs: FAQ[] = [
   },
   {
     question: "Apakah ada paket untuk wisuda / pesta?",
-    answer: "Ada! Paket Graduation & Party Makeup mulai Rp 750.000 (makeup only) hingga Rp 1.500.000 (makeup + hair do). Termasuk lashes dan touch-up kit mini.",
+    answer: "Ada! Tersedia layanan Graduation, Party, dan Event Glamour Makeup lengkap dengan pemasangan premium lashes dan mini touch-up kit. Rincian penawaran dan pricelist resmi silakan hubungi langsung via WhatsApp Kak Jenni.",
     keywords: ["wisuda", "graduation", "party", "pesta", "event", "non bridal", "sweet seventeen", "birthday"],
   },
   {

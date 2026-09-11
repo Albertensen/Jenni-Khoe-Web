@@ -13,11 +13,11 @@ const DEFAULT_PRESET = {
   temperature: 0.7,
   max_tokens: 350,
   system_prompt: 'Anda adalah Customer Service & Virtual Assistant resmi untuk Jenni Khoe Makeup Artist (MUA Haute Couture & Luxury Bridal Specialist). Kepribadian: Sopan, hangat, profesional, bernuansa luxury (panggil klien dengan "Kak"). Tugas utama: Membantu calon pengantin konsultasi riasan, cek ketersediaan tanggal, jelaskan paket, dan arahkan booking privat.',
-  rules: '1. Selalu sapa calon pengantin dengan sebutan "Kak" yang ramah.\n2. Jika klien menanyakan jadwal, catat tanggal acara, lokasi/venue, dan jam acara.\n3. JANGAN PERNAH menanyakan ulang tanggal/lokasi/jam yang SUDAH dijawab klien di riwayat chat sebelumnya.\n4. Jika tanggal, lokasi, dan jam sudah diketahui, LANGSUNG konfirmasi ketersediaan slot (slot tersedia) dan tanyakan jenis acara / jumlah orang atau arahkan lock tanggal ke WhatsApp.\n5. Jika klien siap booking atau ingin lock tanggal, minta nama & nomor WhatsApp atau arahkan ke WhatsApp resmi.',
+  rules: '1. Selalu sapa calon pengantin dengan sebutan "Kak" yang ramah.\n2. Jika klien menanyakan jadwal, catat tanggal acara, lokasi/venue, dan jam acara.\n3. JANGAN PERNAH menanyakan ulang tanggal/lokasi/jam yang SUDAH dijawab klien di riwayat chat sebelumnya.\n4. Jika tanggal, lokasi, dan jam sudah diketahui, LANGSUNG konfirmasi ketersediaan slot (slot privat tersedia) dan tanyakan jenis acara atau rekomendasikan paket sesuai acara.\n5. KEBIJAKAN PRICELIST & HARGA: JANGAN PERNAH menyebutkan nominal angka harga atau rupiah (Rp) di dalam chat ini. Jelaskan rincian layanan & keunggulan fasilitas paket yang tersedia, lalu infokan bahwa katalog pricelist resmi lengkap hanya dikirimkan melalui WhatsApp resmi Kak Jenni.\n6. Jika klien siap booking atau ingin pricelist lengkap, arahkan ke WhatsApp resmi.',
   greeting_message: 'Halo Kak! Selamat datang di Jenni Khoe MUA. Saya asisten virtual Jenni Khoe, siap membantu konsultasi jadwal, rekomendasi riasan, paket bridal, dan booking privat untuk hari bahagia Kakak.',
   whatsapp_number: '6281234567890',
   whatsapp_text_template: 'Halo Kak Jenni Khoe, saya ingin konsultasi booking jadwal makeup.',
-  packages_info: 'Paket Utama Jenni Khoe MUA:\n1. Luxury Royal Bridal: Rp 12.000.000 (Makeup & Hairdo Pengantin Akad + Resepsi, Retouch stand by, Free Mother of the Bride, Flawless complexion 18 jam, Premium false lashes & skin prep luxury).\n2. Intimate / Holy Matrimony: Rp 7.500.000 (Makeup & Hairdo Pengantin 1 sesi, Natural radiant finish, Free touch-up kit).\n3. Engagement / Prewedding: Rp 4.500.000 (Makeup & Hairdo 1 look glam / natural, Touch-up kit).\n4. Family / Bridesmaid: Rp 1.500.000 / pax.\nCakupan: Jabodetabek, Bandung, Bali, dan Destination Wedding seluruh Indonesia.',
+  packages_info: 'Paket Utama Layanan Jenni Khoe MUA:\n1. Luxury Royal Bridal: Riasan Pengantin Akad + Resepsi, Retouch standby seharian, Free makeup Ibu Pengantin, Flawless complexion tahan 18 jam, Premium false lashes & skin prep luxury.\n2. Intimate / Holy Matrimony: Riasan Pengantin 1 sesi sakral, Natural radiant finish, Free touch-up kit.\n3. Engagement / Prewedding: Riasan 1 look glam/natural untuk photoshoot atau lamaran, Touch-up kit.\n4. Family & Bridesmaid: Layanan riasan keluarga inti & bridesmaid.\nCakupan layanan: Jabodetabek, Bandung, Bali, dan Destination Wedding seluruh Indonesia.\nPENTING: Seluruh katalog harga & pricelist resmi lengkap hanya dikirimkan via WhatsApp resmi.',
   auto_capture_leads: true,
 };
 
@@ -156,11 +156,11 @@ function buildSmartFallback(
   if (missing.length === 0 || entities.eventType) {
     let pkgRecommendation = '';
     if (entities.eventType === 'Akad Nikah') {
-      pkgRecommendation = 'Untuk acara Akad Nikah, paket favorit kami adalah Intimate / Holy Matrimony (Rp 7.500.000) atau Luxury Royal Bridal (Rp 12.000.000) dengan ketahanan complexion 18 jam.\n\n';
+      pkgRecommendation = 'Untuk acara Akad Nikah, paket favorit kami adalah Intimate / Holy Matrimony atau Luxury Royal Bridal dengan ketahanan complexion 18 jam dan flawless natural glow.\n\n';
     } else if (entities.eventType === 'Resepsi') {
-      pkgRecommendation = 'Untuk Resepsi, paket Luxury Royal Bridal (Rp 12.000.000) sudah mencakup makeup akad + resepsi, standby retouch, dan free riasan Ibu Pengantin.\n\n';
+      pkgRecommendation = 'Untuk Resepsi, paket Luxury Royal Bridal sudah mencakup makeup akad + resepsi, standby retouch seharian, dan free riasan Ibu Pengantin.\n\n';
     } else if (entities.eventType === 'Prewedding / Engagement') {
-      pkgRecommendation = 'Untuk Prewedding / Lamaran, paket Engagement (Rp 4.500.000) mencakup 1 look glam/natural dan touch-up kit.\n\n';
+      pkgRecommendation = 'Untuk Prewedding / Lamaran, paket Engagement mencakup 1 look glam/natural dan touch-up kit eksklusif.\n\n';
     }
 
     const eventConceptPrompt = (!entities.eventType && missing.length === 0)
@@ -188,13 +188,13 @@ function buildSmartFallback(
 
   if (intent === 'faq_price' || intent === 'faq_package') {
     return (
-      `Halo ${sapaan}! Berikut paket utama Jenni Khoe MUA:\n\n` +
-      `• Luxury Royal Bridal (Rp 12.000.000): Riasan Akad + Resepsi, Retouch standby, Free Mother of the Bride, Complexion tahan 18 jam.\n` +
-      `• Intimate / Holy Matrimony (Rp 7.500.000): 1 sesi riasan pengantin radiant natural glam.\n` +
-      `• Engagement / Prewedding (Rp 4.500.000): 1 look glam/natural + touch-up kit.\n` +
-      `• Family / Bridesmaid: Rp 1.500.000 / pax.\n\n` +
+      `Halo ${sapaan}! Berikut rincian paket layanan eksklusif Jenni Khoe MUA:\n\n` +
+      `• Luxury Royal Bridal: Riasan Akad + Resepsi, Retouch standby seharian, Free riasan Ibu Pengantin, Complexion tahan 18 jam & luxury skin-prep.\n` +
+      `• Intimate / Holy Matrimony: 1 sesi riasan pengantin sakral dengan hasil radiant natural glam & touch-up kit.\n` +
+      `• Engagement / Prewedding: 1 look glam/natural photoshoot + touch-up kit eksklusif.\n` +
+      `• Family & Bridesmaid: Layanan riasan keluarga dan pengiring pengantin.\n\n` +
       `${knownSection}` +
-      `Untuk konsultasi privat dan lock tanggal, silakan hubungi WhatsApp resmi kami di ${waUrl}.`
+      `Untuk menjaga privasi dan memberikan penawaran terbaik sesuai konsep acara ${sapaan}, katalog pricelist resmi lengkap hanya kami kirimkan langsung via WhatsApp resmi Kak Jenni:\n${waUrl}`
     );
   }
 

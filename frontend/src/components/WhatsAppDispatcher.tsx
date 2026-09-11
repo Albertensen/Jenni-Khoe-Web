@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 
 const PACKAGES = [
-  { id: "bridal-royal", label: "Luxury Royal Bridal — Rp 12.000.000 (Akad + Resepsi)" },
-  { id: "bridal-matrimony", label: "Intimate / Holy Matrimony — Rp 7.500.000 (1 Sesi)" },
-  { id: "engagement", label: "Engagement / Prewedding — Rp 4.500.000" },
-  { id: "family", label: "Family & Bridesmaid — Rp 1.500.000 / pax" },
+  { id: "bridal-royal", label: "Luxury Royal Bridal (Akad + Resepsi, Full Retouch & Standby)" },
+  { id: "bridal-matrimony", label: "Intimate / Holy Matrimony (1 Sesi Riasan Sakral & Touch-up)" },
+  { id: "engagement", label: "Engagement / Prewedding Photoshoot" },
+  { id: "family", label: "Family, Bridesmaid & Pengiring Pengantin" },
 ];
 
 const PHONE = "6281234567890"; // Jenni Khoe WhatsApp
@@ -233,8 +233,8 @@ export default function WhatsAppDispatcher() {
             {submitting ? "Mencatat & Membuka WA..." : "Kirim Reservasi via WhatsApp Resmi ✨"}
           </button>
 
-          <p className="text-xs text-luxury-deep-slate/50 text-center">
-            🔒 Data tersimpan otomatis di CRM Prospek Jenni Khoe MUA sebelum beralih ke WhatsApp.
+          <p className="text-xs text-luxury-deep-slate/60 text-center leading-relaxed">
+            ✨ <span className="font-medium">Pricelist resmi & penawaran khusus</span> akan langsung dikirimkan oleh Kak Jenni melalui WhatsApp setelah formulir terkirim.
           </p>
         </form>
       </div>
