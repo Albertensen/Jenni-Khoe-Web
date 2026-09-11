@@ -5,6 +5,17 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 00:55 — Fix CS Chat Repetitive Question Loop & Context Memory
+
+### Fixed
+- `frontend/src/app/api/chat/route.ts` — Mengatasi bug perulangan chat CS yang terus-menerus menanyakan tanggal, lokasi, dan jam meskipun user sudah menjawab.
+- Mengimplementasikan `extractEntities()` pada seluruh riwayat percakapan untuk mengekstrak dan mengingat entitas tanggal, lokasi/venue, jam acara, jenis acara, serta jumlah orang.
+- Menerapkan aturan anti-repetisi ketat baik di fallback knowledge engine maupun injeksi prompt `[DATA KLIEN YANG SUDAH DITERIMA]` ke model `COMBO-UTAMA`.
+- Jika tanggal, lokasi, dan jam sudah diterima, asisten langsung mengonfirmasi ketersediaan slot privat dan memandu pemilihan konsep riasan / penguncian tanggal via WhatsApp.
+- Update rules preset di tabel database Supabase `ai_chat_presets`.
+
+---
+
 ## 2026-09-12 00:35 — AI CS Chatbot COMBO-UTAMA & Admin Preset Customizer
 
 ### Added
