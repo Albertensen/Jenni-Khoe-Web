@@ -1,104 +1,242 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 
 const PACKAGES = [
-  { id: 'bridal-basic', label: 'Bridal Basic — Rp 3.500.000' },
-  { id: 'bridal-premium', label: 'Bridal Premium + Trial — Rp 8.500.000' },
-  { id: 'graduation', label: 'Graduation & Party — Rp 750.000' },
-  { id: 'bridesmaid', label: 'Bridesmaid / Pengiring — Rp 500.000' },
-  { id: 'family', label: 'Ibu & Mertua — Rp 600.000' },
+  { id: "bridal-royal", label: "Luxury Royal Bridal — Rp 12.000.000 (Akad + Resepsi)" },
+  { id: "bridal-matrimony", label: "Intimate / Holy Matrimony — Rp 7.500.000 (1 Sesi)" },
+  { id: "engagement", label: "Engagement / Prewedding — Rp 4.500.000" },
+  { id: "family", label: "Family & Bridesmaid — Rp 1.500.000 / pax" },
 ];
 
-const PHONE = '6281234567890'; // Jenni Khoe WhatsApp
+const PHONE = "6281234567890"; // Jenni Khoe WhatsApp
 
 export default function WhatsAppDispatcher() {
-  const [name, setName] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [venue, setVenue] = useState('');
-  const [selectedPkg, setSelectedPkg] = useState('');
-  const [guestCount, setGuestCount] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [venue, setVenue] = useState("");
+  const [selectedPkg, setSelectedPkg] = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Restore client from localStorage if available
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mua_chat_client");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.name || parsed?.phone) {
+          setName((prev) => parsed.name || prev);
+          setPhone((prev) => parsed.phone || prev);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const generateMessage = (): string => {
-    const parts = ['Halo Kak Jenni! Saya ingin booking makeup.'];
-    if (name) parts.push(`Nama: ${name}`);
+    const parts = ["Halo Kak Jenni Khoe! Saya ingin booking riasan makeup privat."];
+    if (name) parts.push(`Nama Klien: ${name}`);
+    if (phone) parts.push(`No WA: ${phone}`);
     if (eventDate) parts.push(`Tanggal acara: ${eventDate}`);
     if (venue) parts.push(`Lokasi/venue: ${venue}`);
     if (selectedPkg) {
       const pkg = PACKAGES.find((p) => p.id === selectedPkg);
-      if (pkg) parts.push(`Paket: ${pkg.label}`);
+      if (pkg) parts.push(`Pilihan Paket: ${pkg.label}`);
     }
-    if (guestCount) parts.push(`Jumlah orang: ${guestCount}`);
-    parts.push('Mohon info ketersediaan dan DP.');
-    return parts.join('%0A');
+    if (guestCount) parts.push(`Jumlah orang yang dirias: ${guestCount} orang`);
+    parts.push("Mohon info konfirmasi slot dan prosedur invoice SPK booking. Terima kasih!");
+    return parts.join("\n");
   };
 
-  const waUrl = `https://wa.me/${PHONE}?text=${generateMessage()}`;
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    const trimmedName = name.trim();
+    let trimmedPhone = phone.trim().replace(/[^0-9+]/g, "");
+
+    if (trimmedName.length < 2) {
+      setErrorMsg("Mohon masukkan nama lengkap Kakak.");
+      return;
+    }
+
+    if (trimmedPhone.length < 8) {
+      setErrorMsg("Mohon masukkan nomor WhatsApp yang valid.");
+      return;
+    }
+
+    if (trimmedPhone.startsWith("08")) {
+      trimmedPhone = "628" + trimmedPhone.slice(2);
+    } else if (trimmedPhone.startsWith("+62")) {
+      trimmedPhone = trimmedPhone.slice(1);
+    }
+
+    setSubmitting(true);
+    const sessionId = "book_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+
+    // Save identity locally for cross-component sync
+    try {
+      localStorage.setItem(
+        "mua_chat_client",
+        JSON.stringify({ name: trimmedName, phone: trimmedPhone, sessionId })
+      );
+    } catch {}
+
+    const fullMsg = generateMessage();
+
+    // Persist lead directly into Prospek CS CRM
+    try {
+      await fetch("/api/ai-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          name: trimmedName,
+          phone: trimmedPhone,
+          interest: selectedPkg || "Booking Cepat",
+          closing_stage: "Siap Booking / Menuju WhatsApp",
+          schedule_date: eventDate || null,
+          schedule_venue: venue || null,
+          last_message: fullMsg.slice(0, 300),
+          source: "booking_cepat",
+        }),
+      });
+    } catch (err) {
+      console.error("Booking lead error:", err);
+    }
+
+    // Direct to WhatsApp
+    const waUrl = `https://wa.me/${PHONE}?text=${encodeURIComponent(fullMsg)}`;
+    window.open(waUrl, "_blank");
+    setSubmitting(false);
+  };
 
   return (
     <section id="whatsapp-dispatcher" className="w-full px-6 py-16 bg-luxury-champagne-light/20">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-8">
           <span className="text-xs uppercase tracking-widest text-luxury-rose-gold font-medium">
-            Booking Cepat
+            Booking Cepat & Konsultasi
           </span>
           <h3 className="font-serif text-3xl md:text-4xl text-luxury-charcoal font-medium mt-1">
-            Kirim Pesan ke Kak Jenni
+            Kirim Reservasi ke Kak Jenni
           </h3>
           <p className="text-xs md:text-sm text-luxury-deep-slate/70 mt-2 font-light">
-            Isi detail acara, pesan terstruktur akan terkirim otomatis via WhatsApp.
+            Lengkapi nama, WhatsApp, dan detail acara. Data Anda akan langsung dicatat di CRM dan diarahkan ke WhatsApp resmi.
           </p>
         </div>
 
-        <div className="space-y-4">
-          <input
-            type="text" placeholder="Nama Kak*" value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/60 focus:outline-none focus:border-luxury-rose-gold transition-colors"
-          />
-          <input
-            type="date" placeholder="Tanggal acara" value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/60 focus:outline-none focus:border-luxury-rose-gold transition-colors"
-          />
-          <input
-            type="text" placeholder="Lokasi / venue" value={venue}
-            onChange={(e) => setVenue(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/60 focus:outline-none focus:border-luxury-rose-gold transition-colors"
-          />
-          <select
-            value={selectedPkg}
-            onChange={(e) => setSelectedPkg(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/60 focus:outline-none focus:border-luxury-rose-gold transition-colors appearance-none"
-          >
-            <option value="">-- Pilih paket --</option>
-            {PACKAGES.map((p) => (
-              <option key={p.id} value={p.id}>{p.label}</option>
-            ))}
-          </select>
-          <input
-            type="number" min="1" placeholder="Jumlah orang (optional)" value={guestCount}
-            onChange={(e) => setGuestCount(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/60 focus:outline-none focus:border-luxury-rose-gold transition-colors"
-          />
+        <form onSubmit={handleBookingSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+                Nama Calon Klien <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="cth. Aurelia Chandra"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+                Nomor WhatsApp <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                required
+                placeholder="cth. 081234567890"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors"
+              />
+            </div>
+          </div>
 
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`block w-full py-3 text-center text-sm font-medium rounded-xl transition-all ${
-              name
-                ? 'bg-gradient-to-r from-luxury-rose-gold to-luxury-champagne text-white hover:shadow-md'
-                : 'bg-gray-200 text-gray-400 pointer-events-none'
-            }`}
-          >
-            Kirim via WhatsApp
-          </a>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+                Tanggal Acara
+              </label>
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+                Lokasi / Venue
+              </label>
+              <input
+                type="text"
+                placeholder="cth. Hotel Mulia Senayan"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors"
+              />
+            </div>
+          </div>
 
-          <p className="text-xs text-luxury-deep-slate/40 text-center">
-            Kak Jenni akan merespon dalam 1x24 jam. Pastikan nomor WA aktif.
+          <div>
+            <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+              Pilihan Paket Layanan
+            </label>
+            <select
+              value={selectedPkg}
+              onChange={(e) => setSelectedPkg(e.target.value)}
+              className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors appearance-none"
+            >
+              <option value="">-- Pilih Paket Riasan --</option>
+              {PACKAGES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-luxury-charcoal uppercase tracking-wider mb-1">
+              Estimasi Jumlah Orang
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="cth. 1 pengantin + 2 ibu"
+              value={guestCount}
+              onChange={(e) => setGuestCount(e.target.value)}
+              className="w-full px-4 py-3 text-sm border border-luxury-champagne/40 rounded-xl bg-white/80 focus:outline-none focus:border-luxury-rose-gold transition-colors"
+            />
+          </div>
+
+          {errorMsg && (
+            <p className="text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
+              ⚠️ {errorMsg}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3.5 text-center text-xs uppercase tracking-widest font-semibold rounded-xl transition-all bg-gradient-to-r from-luxury-rose-gold to-luxury-champagne text-white hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            <span>💬</span>
+            {submitting ? "Mencatat & Membuka WA..." : "Kirim Reservasi via WhatsApp Resmi ✨"}
+          </button>
+
+          <p className="text-xs text-luxury-deep-slate/50 text-center">
+            🔒 Data tersimpan otomatis di CRM Prospek Jenni Khoe MUA sebelum beralih ke WhatsApp.
           </p>
-        </div>
+        </form>
       </div>
     </section>
   );

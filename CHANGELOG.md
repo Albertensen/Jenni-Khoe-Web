@@ -5,6 +5,23 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 02:00 — Universal Pre-WhatsApp Gating & Multi-Touchpoint CRM Tracking
+
+### Added
+- **Gatekeeper Wajib Nama & No WA di Semua Jalur Kontak**:
+  - `CheckAvailabilityForm.tsx` (Cek Ketersediaan Tanggal): Klien wajib input Nama & No WhatsApp. Saat dicek dan klik "Lock Tanggal via WhatsApp Resmi", data auto-tersimpan ke database CRM `ai_leads` (`source: 'cek_jadwal'`).
+  - `WhatsAppDispatcher.tsx` (Booking Cepat): Ditambahkan field input No WhatsApp wajib. Klik "Kirim via WhatsApp" auto-mencatat ke database CRM (`source: 'booking_cepat'`, stage: `Siap Booking / Menuju WhatsApp`).
+  - `DateCalendar.tsx` (Kalender Jadwal): Klik tanggal hijau membuka modal penguncian slot yang meminta Nama & No WhatsApp sebelum menuju WhatsApp resmi (`source: 'kalender_tanggal'`).
+  - `ChatBubble.tsx` (AI CS): Gatekeeper sebelum sesi konsultasi chat dibuka (`source: 'chat_widget'`).
+- **Sinkronisasi Identitas Global**: Klien hanya perlu mengisi nama dan nomor WhatsApp sekali di salah satu fitur; identitas tersinkronisasi via `localStorage` antar widget secara otomatis.
+- `src/app/admin/ai-leads/page.tsx` (Prospek CS CRM):
+  - Ditambahkan badge visual Kanal Sumber: 🤖 Chat CS, 🔍 Cek Tanggal, ⚡ Booking Cepat, 📅 Kalender Slot.
+  - Ditambahkan filter dropdown "Semua Kanal Sumber".
+  - Template pesan follow-up 1-klik WhatsApp cerdas yang menyesuaikan isi draf dengan kanal sumber dan data acara yang diinput klien.
+- `src/app/layout.tsx` & `src/app/page.tsx`: Menghapus tombol floating WhatsApp bypass agar seluruh interaksi kontak klien dipastikan melewati pencatatan CRM.
+
+---
+
 ## 2026-09-12 01:35 — Pre-Chat Gating dan CRM Prospek CS
 
 ### Added

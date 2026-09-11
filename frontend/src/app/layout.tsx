@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans, Cinzel } from "next/font/google";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { ToastProvider } from "@/components/ui/Toast";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import ChatBubble from "@/components/chat/ChatBubble";
 import "./globals.css";
 
@@ -88,7 +87,6 @@ export default function RootLayout({
         <SmoothScrollProvider>
           <ToastProvider>{children}</ToastProvider>
         </SmoothScrollProvider>
-            <FloatingWhatsApp />
       <ChatBubble />
     </body>
     </html>
