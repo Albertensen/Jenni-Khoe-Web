@@ -5,6 +5,14 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-11 20:30 — Fix bootstrap providers and configure Sanctum API guard
+
+### Fixed
+- `backend/bootstrap/providers.php` — restored `AppServiceProvider::class` registration
+- `backend/config/auth.php` — configured default API guard with `sanctum` driver
+
+---
+
 ## 2026-09-05 21:30 — Docker deploy, portfolio upload, PHP fixes, cron completion
 
 ### Added
