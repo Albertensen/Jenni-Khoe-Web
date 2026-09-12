@@ -8,6 +8,11 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 ## 2026-09-12 11:45 — Otomatisasi Invoice & SPK Format PDF ke WhatsApp / Email dan Menu Admin Invoices
 
 ### Changed
+- **Validasi Ketat Scroll T&C, Checklist Persetujuan & Tanda Tangan SPK**:
+  - Mengharuskan klien membaca dan men-scroll kotak klausul Syarat & Ketentuan (T&C) SPK hingga ke bagian paling bawah sebelum kotak centang persetujuan dan tanda tangan digital dapat dibuka.
+  - Mengunci tombol submit dan memvalidasi secara ketat agar klien tidak dapat melangkah ke Langkah 3 (Pemilihan Metode Pembayaran) sebelum mencentang persetujuan SPK dan membubuhkan tanda tangan digital pada kanvas.
+  - Memperbarui komponen `SignatureCanvas` agar status tanda tangan ter-reset bersih saat kanvas dihapus/dikosongkan.
+  - Memperketat endpoint API backend (`/api/booking/[token]/payment`) dengan status HTTP 403 Forbidden apabila terdapat permintaan pemilihan metode bayar untuk deal yang belum menyetujui T&C dan belum bertandatangan.
 - **Pembersihan Halaman Payments & Penyempurnaan Kirim Manual Invoice/SPK via WA**:
   - Menghapus tombol Invoice dan SPK dari tabel Payments (`/admin/payments`) agar fokus pada rekonsiliasi transaksi pembayaran.
   - Memastikan otomatisasi pengiriman Invoice & SPK (PDF) tetap aktif saat pembayaran lunas (dikirim via WhatsApp/Email).

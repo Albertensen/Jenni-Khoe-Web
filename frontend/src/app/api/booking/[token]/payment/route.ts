@@ -22,6 +22,27 @@ export async function POST(
 
     const supabase = getServiceSupabase();
 
+    // Verify deal exists and is signed with terms accepted
+    const { data: currentDeal, error: fetchErr } = await supabase
+      .from("deal_customers")
+      .select("id, status, terms_accepted, client_signature, signed_at")
+      .eq("booking_token", token)
+      .single();
+
+    if (fetchErr || !currentDeal) {
+      return NextResponse.json({ success: false, message: "Deal tidak ditemukan" }, { status: 404 });
+    }
+
+    if (!currentDeal.terms_accepted || (!currentDeal.client_signature && !currentDeal.signed_at)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Anda wajib menyetujui Syarat & Ketentuan serta membubuhkan tanda tangan digital pada SPK terlebih dahulu.",
+        },
+        { status: 403 }
+      );
+    }
+
     // 1. Update deal_customers
     const { data: updatedDeal, error: dealErr } = await supabase
       .from("deal_customers")

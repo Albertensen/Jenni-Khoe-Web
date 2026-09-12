@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import Link from "next/link";
 import SignatureCanvas from "@/components/SignatureCanvas";
 
@@ -47,10 +47,41 @@ export default function CustomerBookingPage({
 
   // Step 2 SPK States
   const [spkTnc, setSpkTnc] = useState<{ title: string; content: string } | null>(null);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [signing, setSigning] = useState(false);
   const [spkError, setSpkError] = useState<string | null>(null);
+  const tncScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleTncScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight - 35) {
+      setHasScrolledToBottom(true);
+    }
+  };
+
+  const scrollToBottomTnc = () => {
+    if (tncScrollRef.current) {
+      tncScrollRef.current.scrollTo({
+        top: tncScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+      setTimeout(() => {
+        setHasScrolledToBottom(true);
+      }, 350);
+    }
+  };
+
+  // Auto-unlock if T&C content is short enough that no scrollbar is needed
+  useEffect(() => {
+    if (step === 2 && tncScrollRef.current) {
+      const el = tncScrollRef.current;
+      if (el.scrollHeight <= el.clientHeight + 25) {
+        setHasScrolledToBottom(true);
+      }
+    }
+  }, [step, spkTnc]);
 
   // Step 3 Payment States
   const [selectedMethod, setSelectedMethod] = useState<"belum_bayar" | "transfer" | "qris" | "kartu_kredit">("belum_bayar");
@@ -82,11 +113,17 @@ export default function CustomerBookingPage({
             setSelectedMethod("belum_bayar");
           }
 
-          // If already signed, jump directly to step 3
-          if (json.data.status === "spk_signed" || json.data.status === "dp_paid") {
+          // If already signed, jump directly to step 3 ONLY if both terms_accepted AND client_signature exist
+          const hasValidSignature = Boolean(
+            json.data.terms_accepted &&
+            (json.data.client_signature || json.data.signed_at)
+          );
+          if (hasValidSignature || json.data.status === "dp_paid" || json.data.status === "confirmed") {
             setStep(3);
-          } else if (json.data.status === "form_submitted") {
+          } else if (json.data.status === "form_submitted" || json.data.status === "spk_signed") {
             setStep(2);
+          } else {
+            setStep(1);
           }
         } else {
           setErrorMsg(json.message || "Tautan reservasi tidak ditemukan atau telah kedaluwarsa.");
@@ -138,14 +175,31 @@ export default function CustomerBookingPage({
     }
   };
 
+  // Strict Guard: SPK is completed only when terms are checked AND signature exists
+  const isSpkCompleted = Boolean(
+    (deal?.terms_accepted && (deal?.client_signature || deal?.signed_at)) ||
+    (termsAccepted && signatureData && signatureData.trim().length > 0)
+  );
+
+  // Automatically prevent viewing step 3 if SPK was not signed
+  useEffect(() => {
+    if (step === 3 && deal && !isSpkCompleted && deal.status !== "dp_paid" && deal.status !== "confirmed") {
+      setStep(2);
+    }
+  }, [step, deal, isSpkCompleted]);
+
   // Step 2 Submit: Sign SPK
   const handleSignSpk = async () => {
     setSpkError(null);
+    if (!hasScrolledToBottom) {
+      setSpkError("Anda wajib membaca dan men-scroll klausul SPK sampai ke bagian paling bawah terlebih dahulu.");
+      return;
+    }
     if (!termsAccepted) {
       setSpkError("Anda wajib mencentang persetujuan Syarat & Ketentuan SPK.");
       return;
     }
-    if (!signatureData) {
+    if (!signatureData || signatureData.trim().length === 0) {
       setSpkError("Silakan goreskan tanda tangan digital Anda pada area kanvas di bawah.");
       return;
     }
@@ -179,6 +233,11 @@ export default function CustomerBookingPage({
 
   // Trigger payment method selection
   const handleSelectPaymentMethod = async (method: "transfer" | "qris" | "kartu_kredit") => {
+    if (!isSpkCompleted) {
+      alert("Anda wajib menyetujui T&C dan membubuhkan tanda tangan digital pada SPK terlebih dahulu.");
+      setStep(2);
+      return;
+    }
     try {
       setUpdatingPayment(true);
       const res = await fetch(`/api/booking/${token}/payment`, {
@@ -520,7 +579,11 @@ export default function CustomerBookingPage({
             </div>
 
             {/* Dokumen SPK Kontrak Resmi */}
-            <div className="bg-[#FCFAF7] border border-luxury-champagne/60 rounded-2xl p-5 sm:p-6 text-xs text-gray-800 space-y-4 max-h-[380px] overflow-y-auto shadow-inner leading-relaxed">
+            <div
+              ref={tncScrollRef}
+              onScroll={handleTncScroll}
+              className="bg-[#FCFAF7] border border-luxury-champagne/60 rounded-2xl p-5 sm:p-6 text-xs text-gray-800 space-y-4 max-h-[380px] overflow-y-auto shadow-inner leading-relaxed scroll-smooth relative"
+            >
               <div className="text-center border-b border-gray-200 pb-3 space-y-1">
                 <h3 className="font-serif font-bold text-sm text-luxury-charcoal uppercase tracking-wider">
                   SURAT PERJANJIAN KERJA (SPK)
@@ -589,35 +652,72 @@ export default function CustomerBookingPage({
                   </ol>
                 )}
               </div>
+
+              {/* Penanda Akhir Dokumen SPK */}
+              <div className="pt-4 border-t border-dashed border-gray-300 text-center text-[11px] text-gray-400">
+                — Akhir Klausul Surat Perjanjian Kerja (SPK) —
+              </div>
             </div>
 
-            {/* Checkbox Persetujuan T&C */}
-            <label className="flex items-start gap-3 cursor-pointer select-none bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 w-4 h-4 text-luxury-rose-gold rounded focus:ring-luxury-rose-gold cursor-pointer"
-              />
-              <span className="text-xs text-gray-700 leading-relaxed font-medium">
-                Saya telah membaca, memahami, dan menyetujui seluruh klausul Surat Perjanjian Kerja (SPK) serta Syarat & Ketentuan resmi Jenni Khoe MUA di atas secara sadar tanpa paksaan.
-              </span>
-            </label>
+            {/* Checkbox Persetujuan & Tanda Tangan: Muncul setelah T&C di-scroll sampai bawah */}
+            {!hasScrolledToBottom ? (
+              <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-2xs">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-2xl mt-0.5">📜</span>
+                  <div>
+                    <p className="font-bold text-sm text-amber-950">
+                      Mohon Scroll & Baca Seluruh Klausul SPK
+                    </p>
+                    <p className="text-[11px] text-amber-800/85 mt-0.5 leading-relaxed">
+                      Kotak centang persetujuan serta area tanda tangan digital akan otomatis muncul setelah Anda membaca seluruh syarat & ketentuan di atas hingga baris terakhir.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={scrollToBottomTnc}
+                  className="px-4 py-2 bg-luxury-charcoal hover:bg-black text-white text-xs font-semibold rounded-xl transition shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1.5 self-end sm:self-center"
+                >
+                  <span>Scroll ke Bawah</span>
+                  <span>↓</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-5 animate-fade-in">
+                <div className="flex items-center gap-2 text-emerald-700 text-xs font-semibold bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/70 w-fit">
+                  <span>✓</span>
+                  <span>Seluruh klausul SPK telah dibaca & diverifikasi</span>
+                </div>
 
-            {/* Area Tanda Tangan Digital */}
-            <div className="space-y-2">
-              <SignatureCanvas
-                label="Goreskan Tanda Tangan Digital Anda:"
-                onSave={(dataUrl) => setSignatureData(dataUrl)}
-                height={160}
-              />
-              <p className="text-[10px] text-gray-400">
-                * Gunakan jari (pada layar sentuh HP) atau kursor mouse untuk menandatangani. Tanda tangan ini memiliki kekuatan persetujuan hukum digital yang sah.
-              </p>
-            </div>
+                {/* Checkbox Persetujuan T&C */}
+                <label className="flex items-start gap-3 cursor-pointer select-none bg-emerald-50/40 hover:bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 transition-all shadow-2xs">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-800 leading-relaxed font-medium">
+                    Saya telah membaca, memahami, dan menyetujui seluruh klausul Surat Perjanjian Kerja (SPK) serta Syarat & Ketentuan resmi Jenni Khoe MUA di atas secara sadar tanpa paksaan.
+                  </span>
+                </label>
+
+                {/* Area Tanda Tangan Digital */}
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <SignatureCanvas
+                    label="Goreskan Tanda Tangan Digital Anda:"
+                    onSave={(dataUrl) => setSignatureData(dataUrl || null)}
+                    height={160}
+                  />
+                  <p className="text-[10px] text-gray-400">
+                    * Gunakan jari (pada layar sentuh HP) atau kursor mouse untuk menandatangani. Tanda tangan ini memiliki kekuatan persetujuan hukum digital yang sah.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {spkError && (
-              <div className="p-3 bg-red-50 text-red-700 rounded-xl text-xs border border-red-200">
+              <div className="p-3.5 bg-red-50 text-red-700 rounded-xl text-xs border border-red-200 font-medium">
                 {spkError}
               </div>
             )}
@@ -625,18 +725,56 @@ export default function CustomerBookingPage({
             <button
               type="button"
               onClick={handleSignSpk}
-              disabled={signing || !termsAccepted || !signatureData}
-              className="w-full py-3 px-6 rounded-xl bg-luxury-charcoal hover:bg-black text-white font-medium text-xs transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={signing || !hasScrolledToBottom || !termsAccepted || !signatureData}
+              className={`w-full py-3.5 px-6 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-md ${
+                !hasScrolledToBottom
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300 shadow-none"
+                  : !termsAccepted
+                  ? "bg-amber-100 text-amber-700 cursor-not-allowed border border-amber-300 shadow-none"
+                  : !signatureData
+                  ? "bg-amber-100 text-amber-700 cursor-not-allowed border border-amber-300 shadow-none"
+                  : "bg-luxury-charcoal hover:bg-black text-white cursor-pointer hover:shadow-lg"
+              }`}
             >
-              <span>{signing ? "Menandatangani SPK..." : "Setujui SPK & Lanjut ke Pembayaran DP"}</span>
-              <span>👉</span>
+              {signing ? (
+                <span>Menyimpan SPK & Memproses...</span>
+              ) : !hasScrolledToBottom ? (
+                <span>Scroll SPK sampai bawah untuk melanjutkan</span>
+              ) : !termsAccepted ? (
+                <span>Wajib centang persetujuan SPK di atas</span>
+              ) : !signatureData ? (
+                <span>Wajib bubuhkan tanda tangan digital di atas</span>
+              ) : (
+                <>
+                  <span>✓ Setujui SPK & Lanjut ke Pembayaran DP</span>
+                  <span>👉</span>
+                </>
+              )}
             </button>
           </div>
         )}
 
         {/* STEP 3: PEMBAYARAN DP & TRIGGER METODE PEMBAYARAN */}
         {step === 3 && (
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-luxury-champagne/50 shadow-md space-y-6 animate-fade-in">
+          !isSpkCompleted ? (
+            <div className="bg-white rounded-3xl p-8 border border-amber-200 text-center space-y-4 shadow-md">
+              <div className="text-3xl">⚠️</div>
+              <h3 className="font-serif text-lg font-bold text-gray-800">
+                Persetujuan SPK Belum Lengkap
+              </h3>
+              <p className="text-xs text-gray-600 max-w-md mx-auto leading-relaxed">
+                Anda belum menyetujui klausul SPK atau belum membubuhkan tanda tangan digital. Mohon lengkapi terlebih dahulu sebelum memilih metode pembayaran.
+              </p>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-5 py-2.5 bg-luxury-charcoal hover:bg-black text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition"
+              >
+                ← Kembali ke Langkah 2 (T&C & SPK)
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-luxury-champagne/50 shadow-md space-y-6 animate-fade-in">
             {/* Header Sukses */}
             <div className="text-center space-y-2">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-2xl mx-auto shadow-xs">
@@ -975,7 +1113,9 @@ export default function CustomerBookingPage({
             )}
 
               </div>
-            )}          </div>
+            )}
+            </div>
+          )
         )}
       </div>
     </div>

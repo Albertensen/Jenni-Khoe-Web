@@ -94,7 +94,9 @@ export default function SignatureCanvas({
   useEffect(() => {
     // Validate data URL — prevents XSS from manipulated canvas
     const isValid = typeof sigData === 'string' && sigData.startsWith('data:image/png;base64,');
-    if (isValid && onSave) onSave(sigData);
+    if (onSave) {
+      onSave(isValid ? sigData : '');
+    }
   }, [sigData, onSave]);
 
   return (
