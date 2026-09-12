@@ -5,6 +5,32 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 07:45 — Integrasi Google Calendar & Sinkronisasi Jadwal Rias MUA
+
+### Added
+- **Google OAuth 2.0 Integration & Auth Flow**:
+  - `GET /api/google/auth`: Inisiasi redirect ke Google Consent Screen dengan scope `calendar`, `calendar.events`, dan `userinfo.email` (`offline access` & `consent prompt`).
+  - `GET /api/google/callback`: Handler pertukaran authorization code menjadi access token, refresh token, expiry, dan email akun Google yang tersimpan aman di database Supabase.
+  - `GET /api/google/settings`: Status koneksi akun Google, email, nama kalender, dan Authorized Redirect URI.
+  - `POST /api/google/settings`: Pengaturan kredensial Google Client ID & Secret langsung melalui modal antarmuka admin (atau via environment variable).
+  - `DELETE /api/google/settings`: Fitur pemutusan (disconnect) koneksi akun Google dengan aman.
+- **Dua Arah (Bidirectional) Google Calendar Sync Engine (`/api/google/sync`)**:
+  - Push jadwal booking klien ke Google Calendar secara terstruktur (nama klien, paket, nomor SPK, kontak, lokasi venue, pengingat 1 hari & 2 jam sebelum acara).
+  - Simpan dan hubungkan `google_event_id` serta tautan langsung `google_event_link` ke database.
+  - Pull agenda eksternal dari Google Calendar ke kalender MUA untuk mendeteksi kesibukan atau jadwal personal MUA.
+  - Auto-refresh token Google secara transparan saat access token kadaluarsa menggunakan refresh token.
+- **Revamp Antarmuka Admin Schedules (`/admin/schedules`)**:
+  - Banner status Google Calendar (indikator terhubung/belum, akun email, waktu sync terakhir, tombol "Hubungkan Akun Google", "Sinkronkan Google", dan "Putuskan").
+  - Modal panduan & setup kredensial Google OAuth 2.0 Client ID & Secret dengan fitur copy Authorized Redirect URI.
+  - Tampilan kalender interaktif bulanan dengan penanda tanggal hari ini, navigasi bulan, badge jumlah agenda, dan pembedaan warna kategori (Booking MUA: Amber/Gold, Google Calendar: Blue, Studio Manual: Purple).
+  - Panel agenda harian di sisi kanan beserta tombol WhatsApp langsung ke klien dan tombol pintas "Buka di Google Calendar".
+  - Fitur tambah agenda manual atau blokir tanggal studio (photoshoot, libur, maintenance).
+- **Database Refinement**:
+  - Tabel `google_calendar_settings` di Supabase untuk persistensi OAuth tokens dan konfigurasi sync.
+  - Kolom `title`, `description`, `location`, dan `source` pada tabel `schedules`.
+
+---
+
 ## 2026-09-12 07:15 — Sinkronisasi Otomatis Metode & Status Pembayaran (Payments Ledger & Reconciliation)
 
 ### Added
