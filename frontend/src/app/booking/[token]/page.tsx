@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Link from "next/link";
 import SignatureCanvas from "@/components/SignatureCanvas";
 
 interface DealData {
   id: number;
+  booking_id?: number | null;
   name: string;
   phone: string;
   email: string | null;
@@ -682,7 +684,62 @@ export default function CustomerBookingPage({
               </div>
             </div>
 
-            {/* Pilihan Metode Pembayaran (Triggered by Button — Rekening tidak langsung muncul) */}
+            {/* JIKA PEMBAYARAN TELAH LUNAS / DIKONFIRMASI */}
+            {deal.payment_status === "confirmed" || deal.payment_status === "success" || deal.status === "dp_paid" || deal.status === "confirmed" ? (
+              <div className="bg-emerald-50 border border-emerald-300 rounded-3xl p-6 sm:p-8 text-center space-y-4 animate-fade-in shadow-xs">
+                <div className="w-14 h-14 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl mx-auto shadow-sm">
+                  ✓
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold tracking-wider px-3 py-1 bg-emerald-600 text-white rounded-full uppercase">
+                    Pembayaran DP Lunas & Terverifikasi
+                  </span>
+                  <h3 className="font-serif text-xl font-bold text-emerald-950 pt-2">
+                    Jadwal Rias Anda Resmi Terkunci di Kalender
+                  </h3>
+                  <p className="text-xs text-emerald-800/90 max-w-md mx-auto leading-relaxed">
+                    Terima kasih Kak <strong>{name}</strong>! Uang muka telah berhasil kami terima. Dokumen bukti pembayaran resmi (Invoice) dan Surat Perjanjian Kerja (SPK) siap Anda unduh di bawah ini.
+                  </p>
+                </div>
+
+                {/* Document Action Buttons */}
+                <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link
+                    href={`/invoice/${deal.booking_id || deal.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-6 py-3 bg-luxury-charcoal hover:bg-black text-white text-xs font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-2"
+                  >
+                    <span>🧾</span>
+                    <span>Download / Cetak Invoice Resmi (PDF)</span>
+                  </Link>
+
+                  <Link
+                    href={`/spk/${deal.booking_id || deal.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 text-xs font-semibold rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+                  >
+                    <span>📜</span>
+                    <span>Lihat Dokumen SPK Sah (PDF)</span>
+                  </Link>
+                </div>
+
+                <div className="pt-2 border-t border-emerald-200/60">
+                  <a
+                    href={getWhatsAppPaymentLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:underline"
+                  >
+                    <span>💬</span>
+                    <span>Hubungi Tim Konsultasi Jenni Khoe MUA via WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+{/* Pilihan Metode Pembayaran (Triggered by Button — Rekening tidak langsung muncul) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -916,7 +973,9 @@ export default function CustomerBookingPage({
                 </a>
               </div>
             )}
-          </div>
+
+              </div>
+            )}          </div>
         )}
       </div>
     </div>

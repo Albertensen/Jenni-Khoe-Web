@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { dispatchInvoiceAndSpk } from "@/lib/invoice-dispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -319,6 +320,15 @@ export async function PATCH(req: NextRequest) {
       }
     } catch (schedSyncErr) {
       console.error("Warning: schedule date lock sync error:", schedSyncErr);
+    }
+
+    // Auto-generate invoice and dispatch PDF links via WA/Email if payment is confirmed
+    if (isSuccess) {
+      try {
+        await dispatchInvoiceAndSpk({ bookingId: id });
+      } catch (invErr) {
+        console.warn("Invoice auto-dispatch warning in bookings route:", invErr);
+      }
     }
 
     return NextResponse.json({ success: true, data });

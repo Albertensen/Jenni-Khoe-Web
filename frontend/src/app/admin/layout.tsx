@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/schedules", label: "Calendar", icon: "🗓️" },
   { href: "/admin/contracts", label: "SPK Archive", icon: "📄" },
   { href: "/admin/payments", label: "Payments", icon: "💰" },
+  { href: "/admin/invoices", label: "Invoices & PDF", icon: "🧾" },
   { href: "/admin/portfolio", label: "Portfolio CMS", icon: "🖼️" },
   { href: "/admin/ai-preset", label: "CS AI Preset", icon: "⚙️" },
 ];

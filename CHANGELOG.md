@@ -5,6 +5,26 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 11:45 — Otomatisasi Invoice & SPK Format PDF ke WhatsApp / Email dan Menu Admin Invoices
+
+### Added
+- **Otomatisasi Penerbitan & Pengiriman Dokumen saat Pembayaran Lunas**:
+  - Saat pembayaran berstatus `settled` / `confirmed` (baik via verifikasi admin atau checkout gateway), sistem otomatis menerbitkan dokumen resmi `Invoice` dan menghubungkannya dengan `SPK` digital.
+  - Link dokumen PDF resmi langsung disiapkan untuk dikirim ke customer via WhatsApp dengan format pesan profesional, dan otomatis terkirim via Email (didukung Resend API) jika customer menyertakan alamat email.
+- **Menu Admin "Invoices & PDF" (`/admin/invoices`)**:
+  - Tab 1: **Daftar Invoice & Log Notifikasi**: Audit trail seluruh nomor invoice resmi (`INV-JKM-...`), nominal DP lunas, sisa tagihan, status pengiriman WA & Email, serta tombol cepat cetak PDF dan kirim ulang notifikasi.
+  - Tab 2: **Pengaturan Default Invoice**: Pengaturan terpusat untuk kustomisasi logo usaha, nama bisnis/studio, tagline, alamat, kontak WhatsApp, email, akun Instagram, rekening bank resmi (BCA/lainnya), nama penandatangan resmi, catatan kaki/syarat transaksi, serta switch otomatisasi pengiriman. Dilengkapi fitur *Live Visual Invoice Preview*.
+- **Halaman Cetak / Unduh PDF Dokumen Publik**:
+  - `/invoice/[id]`: Desain invoice luxury standar studio MUA high-end dengan layout siap cetak/simpan PDF A4 (`@media print`), rincian DP lunas, sisa pelunasan H-7, stempel verifikasi, dan nomor referensi SPK.
+  - `/spk/[id]`: Desain Surat Perjanjian Kerja (SPK) legal siap cetak/simpan PDF A4 lengkap dengan bukti tanda tangan digital customer dan syarat & ketentuan layanan.
+- **Integrasi Unduh Dokumen pada Halaman Reservasi Customer (`/booking/[token]`)**:
+  - Menampilkan banner status lunas terverifikasi serta tombol langsung "Download / Cetak Invoice Resmi (PDF)" dan "Lihat Dokumen SPK Sah (PDF)" begitu pembayaran terkonfirmasi.
+- **Tabel Database Supabase**:
+  - `invoice_settings`: Menyimpan preferensi default template, identitas bisnis, rekening, dan pengaturan notifikasi.
+  - `invoices`: Menyimpan riwayat invoice resmi dengan nomor urut unik, nominal DP, sisa tagihan, nomor SPK, dan timestamp pengiriman WA/Email.
+
+---
+
 ## 2026-09-12 08:30 — Validasi Penguncian Kalender Berdasarkan Pelunasan DP (Strict DP-Settled Lock)
 
 ### Changed

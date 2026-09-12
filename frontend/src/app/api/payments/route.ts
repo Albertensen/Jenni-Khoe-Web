@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { dispatchInvoiceAndSpk } from "@/lib/invoice-dispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -314,6 +315,19 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // Auto-generate invoice and dispatch PDF links via WA/Email if payment is settled
+    if (status === "settled") {
+      try {
+        await dispatchInvoiceAndSpk({
+          paymentId: updatedPayment.id,
+          bookingId: updatedPayment.booking_id,
+          dealId: updatedPayment.deal_id,
+        });
+      } catch (dispErr) {
+        console.warn("Invoice auto-dispatch warning on PATCH:", dispErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: updatedPayment,
@@ -376,6 +390,19 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", booking_id);
+
+    // Auto-generate invoice and dispatch PDF links via WA/Email if payment is settled
+    if (isSettled && newPayment?.id) {
+      try {
+        await dispatchInvoiceAndSpk({
+          paymentId: newPayment.id,
+          bookingId: newPayment.booking_id,
+          dealId: newPayment.deal_id,
+        });
+      } catch (dispErr) {
+        console.warn("Invoice auto-dispatch warning on POST:", dispErr);
+      }
+    }
 
     return NextResponse.json({ success: true, data: newPayment, message: "Pembayaran baru berhasil dicatat dan disinkronkan" });
   } catch (err: unknown) {

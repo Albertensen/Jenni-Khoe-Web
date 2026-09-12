@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { dispatchInvoiceAndSpk } from "@/lib/invoice-dispatch";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -335,6 +336,15 @@ export async function PATCH(req: NextRequest) {
       }
     } catch (bookingErr) {
       console.error("Sync error to bookings/payments from deals PATCH:", bookingErr);
+    }
+
+    // Auto-generate invoice and dispatch PDF links via WA/Email if payment is confirmed
+    if (payment_status === "confirmed" || payment_status === "success") {
+      try {
+        await dispatchInvoiceAndSpk({ dealId: id });
+      } catch (invErr) {
+        console.warn("Invoice auto-dispatch warning in deals route:", invErr);
+      }
     }
 
     return NextResponse.json({ success: true, data });
