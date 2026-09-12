@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceSupabase();
     const body = await req.json();
 
-    const { client_name, client_phone, client_email, service_package, event_date, venue, total_amount, dp_amount, notes } = body;
+    const { client_name, client_phone, client_email, service_package, event_date, venue, total_amount, dp_amount, notes, payment_method, payment_status } = body;
 
     // 1. Find or create client
     let clientId = body.client_id;
@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
         total_amount: Number(total_amount) || 0,
         dp_amount: Number(dp_amount) || 0,
         notes: notes || null,
-        payment_method: "belum_bayar",
-        payment_status: "belum_bayar",
+        payment_method: payment_method || "belum_bayar",
+        payment_status: payment_status || "belum_bayar",
       })
       .select("*")
       .single();
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: bookingErr.message }, { status: 500 });
     }
 
-        // Sync to contracts table (SPK Archive) if spk_number is present
+    // 3. Sync to contracts table (SPK Archive) if spk_number is present
     if (body.spk_number) {
       try {
         await supabase
@@ -118,6 +118,40 @@ export async function POST(req: NextRequest) {
       } catch (cErr) {
         console.error("Warning: sync contract from booking post error:", cErr);
       }
+    }
+
+    // 4. Sync to payments table
+    try {
+      const isConfirmed = bookingData.payment_status === "confirmed" || bookingData.payment_status === "success" || bookingData.status === "confirmed";
+      const pMethod = bookingData.payment_method && bookingData.payment_method !== "belum_bayar" ? bookingData.payment_method : "transfer";
+      const amount =
+        Number(bookingData.dp_amount) > 0
+          ? Number(bookingData.dp_amount)
+          : Number(bookingData.total_amount) > 0
+          ? Number(bookingData.total_amount)
+          : 5000000;
+
+      await supabase.from("payments").insert({
+        booking_id: bookingData.id,
+        deal_id: bookingData.deal_id || null,
+        transaction_id: `TRX-${pMethod.toUpperCase()}-${bookingData.id}-${Date.now().toString().slice(-4)}`,
+        amount: amount,
+        payment_method: pMethod,
+        status: isConfirmed ? "settled" : "pending",
+        paid_at: isConfirmed ? new Date().toISOString() : null,
+        payment_channel:
+          pMethod === "transfer"
+            ? "BCA Transfer"
+            : pMethod === "qris"
+            ? "QRIS Instant"
+            : pMethod === "kartu_kredit"
+            ? "Kartu Kredit"
+            : "Virtual Account",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    } catch (pErr) {
+      console.error("Warning: sync payment from booking post error:", pErr);
     }
 
     return NextResponse.json({ success: true, data: bookingData });
@@ -160,7 +194,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 
-    // Bidirectional sync to deal_customers if linked
+    // 1. Bidirectional sync to deal_customers if linked
     if (data?.deal_id) {
       const dealUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (payment_status !== undefined) dealUpdates.payment_status = payment_status;
@@ -173,7 +207,7 @@ export async function PATCH(req: NextRequest) {
         .eq("id", data.deal_id);
     }
 
-    // Sync to contracts table (SPK Archive) if linked
+    // 2. Sync to contracts table (SPK Archive) if linked
     if (data?.spk_number) {
       try {
         await supabase
@@ -189,6 +223,66 @@ export async function PATCH(req: NextRequest) {
       } catch (cErr) {
         console.error("Warning: sync contract from booking patch error:", cErr);
       }
+    }
+
+    // 3. Bidirectional sync to payments table
+    try {
+      const { data: existingPayment } = await supabase
+        .from("payments")
+        .select("id, status, paid_at, payment_method")
+        .eq("booking_id", id)
+        .maybeSingle();
+
+      const payMethod = payment_method || data.payment_method || "transfer";
+      const payStatus = isSuccess ? "settled" : (payment_status === "belum_bayar" ? "pending" : (payment_status ? "pending" : undefined));
+
+      if (existingPayment) {
+        const payUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (payStatus !== undefined) {
+          payUpdates.status = payStatus;
+          if (payStatus === "settled") {
+            payUpdates.paid_at = existingPayment.paid_at || new Date().toISOString();
+          } else if (payStatus === "pending") {
+            payUpdates.paid_at = null;
+          }
+        }
+        if (payment_method !== undefined && payment_method !== "belum_bayar") {
+          payUpdates.payment_method = payment_method;
+        }
+        await supabase
+          .from("payments")
+          .update(payUpdates)
+          .eq("id", existingPayment.id);
+      } else {
+        const amount =
+          Number(data.dp_amount) > 0
+            ? Number(data.dp_amount)
+            : Number(data.total_amount) > 0
+            ? Number(data.total_amount)
+            : 5000000;
+
+        await supabase.from("payments").insert({
+          booking_id: id,
+          deal_id: data.deal_id || null,
+          transaction_id: `TRX-${payMethod.toUpperCase()}-${id}-${Date.now().toString().slice(-4)}`,
+          amount: amount,
+          payment_method: payMethod,
+          status: isSuccess ? "settled" : "pending",
+          paid_at: isSuccess ? new Date().toISOString() : null,
+          payment_channel:
+            payMethod === "transfer"
+              ? "BCA Transfer"
+              : payMethod === "qris"
+              ? "QRIS Instant"
+              : payMethod === "kartu_kredit"
+              ? "Kartu Kredit"
+              : "Virtual Account",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch (paySyncErr) {
+      console.error("Warning: sync payments from booking patch error:", paySyncErr);
     }
 
     return NextResponse.json({ success: true, data });

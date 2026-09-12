@@ -148,12 +148,58 @@ export async function POST(
         }
       }
 
-      // Link booking_id back to deal_customers
+      // Link booking_id back to deal_customers & sync to payments table
       if (bookingId) {
         await supabase
           .from("deal_customers")
           .update({ booking_id: bookingId })
           .eq("id", deal.id);
+
+        try {
+          const { data: existingPay } = await supabase
+            .from("payments")
+            .select("id")
+            .eq("booking_id", bookingId)
+            .maybeSingle();
+
+          const pMethod =
+            deal.payment_method && deal.payment_method !== "belum_bayar"
+              ? deal.payment_method
+              : "transfer";
+          const isConfirmed =
+            deal.payment_status === "confirmed" || deal.payment_status === "success";
+
+          if (existingPay) {
+            await supabase
+              .from("payments")
+              .update({
+                payment_method: pMethod,
+                status: isConfirmed ? "settled" : "pending",
+                updated_at: now.toISOString(),
+              })
+              .eq("id", existingPay.id);
+          } else {
+            await supabase.from("payments").insert({
+              booking_id: bookingId,
+              deal_id: deal.id,
+              transaction_id: `TRX-${pMethod.toUpperCase()}-${bookingId}-${Date.now().toString().slice(-4)}`,
+              amount: 5000000,
+              payment_method: pMethod,
+              status: isConfirmed ? "settled" : "pending",
+              paid_at: isConfirmed ? now.toISOString() : null,
+              payment_channel:
+                pMethod === "transfer"
+                  ? "BCA Transfer"
+                  : pMethod === "qris"
+                  ? "QRIS Instant"
+                  : "Kartu Kredit",
+              created_at: now.toISOString(),
+              updated_at: now.toISOString(),
+            });
+          }
+        } catch (pErr) {
+          console.error("Warning: payments sync from sign route error:", pErr);
+        }
       }
     } catch (syncErr) {
       console.error("Warning: Booking sync error:", syncErr);

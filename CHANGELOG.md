@@ -5,6 +5,31 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 07:15 — Sinkronisasi Otomatis Metode & Status Pembayaran (Payments Ledger & Reconciliation)
+
+### Added
+- **Bidirectional Payment Sync Engine**:
+  - `GET /api/payments`: Auto-reconciliation otomatis antara tabel `bookings`, `deal_customers`, dan `payments`. Booking yang belum tercatat di payments otomatis dibuatkan entri transaksi (dengan TRX ID unik, nominal DP, metode, dan status).
+  - `PATCH /api/payments`: Mengubah status atau metode pembayaran di tabel `payments` secara otomatis menyinkronkan status booking (`status: 'confirmed'`, `payment_status: 'confirmed'`) dan deal terkait (`status: 'dp_paid'`), serta sebaliknya.
+  - `POST /api/payments`: Mendukung aksi `{ action: 'sync_all' }` untuk sinkronisasi massal seluruh data riwayat booking ke payments.
+- **Hook Sinkronisasi di Seluruh Alur Transaksi**:
+  - `/api/bookings` (PATCH & POST): Perubahan status atau metode pembayaran pada booking langsung mengupdate atau membuat entri pada ledger `payments`.
+  - `/api/deals` (PATCH): Perubahan status atau metode deal langsung menyinkronkan data booking dan ledger `payments`.
+  - `/api/booking/[token]/payment` (POST): Pemilihan metode pembayaran oleh klien di checkout portal langsung menyinkronkan ke deal, booking, dan payments.
+  - `/api/booking/[token]/sign` (POST): Tanda tangan SPK digital langsung mendaftarkan entri pembayaran di tabel `payments`.
+- **Revamp Admin Payments Page (`/admin/payments`)**:
+  - **Stat Cards**: Total Lunas (Settled), Menunggu Pembayaran (Pending), Total Ledger, dan Saluran Terpopuler.
+  - **Filter & Pencarian**: Filter instan berdasarkan Status (Settled, Pending, Failed, Refund) dan Metode (Transfer BCA, QRIS, Kartu Kredit, VA), serta pencarian nama klien, SPK, dan TRX ID.
+  - **Dropdown Metode Interaktif**: Admin dapat mengubah metode pembayaran langsung pada baris tabel, otomatis tersinkron ke Bookings dan Deals.
+  - **Aksi Cepat Verifikasi Status**: Tombol "✓ Tandai Lunas" dan "Batal Lunas" satu-klik yang menyinkronkan status ke seluruh database.
+  - **WhatsApp Direct Confirmation**: Tombol kirim pesan konfirmasi resmi WhatsApp ke klien dengan template pesan profesional sesuai status pembayaran.
+  - **Salin ID Transaksi**: Tombol klik untuk menyalin TRX ID dengan visual feedback.
+- **Database Refinement**:
+  - Menghapus check constraint kaku `payments_payment_method_check` dan `payments_status_check` di database Supabase dan memperbarui skema `supabase_schema.sql` agar mendukung metode transfer dan nilai status fleksibel.
+  - Menambahkan kolom `deal_id` pada tabel `payments`.
+
+---
+
 ## 2026-09-12 06:46 — Pengaturan Default T&C SPK & Sinkronisasi ke Portal Klien
 
 ### Added

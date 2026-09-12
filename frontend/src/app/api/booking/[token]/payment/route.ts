@@ -40,21 +40,70 @@ export async function POST(
 
     // 2. Sync to bookings table
     try {
-      await supabase
+      const { data: updatedBookings } = await supabase
         .from("bookings")
         .update({
           payment_method: method,
           payment_status: paymentStatus,
           updated_at: new Date().toISOString(),
         })
-        .or(`deal_id.eq.${updatedDeal.id},booking_token.eq.${token}`);
+        .or(`deal_id.eq.${updatedDeal.id},booking_token.eq.${token}`)
+        .select("id, dp_amount, total_amount");
+
+      // 3. Sync to payments table
+      const bId = (updatedBookings && updatedBookings[0]?.id) || updatedDeal.booking_id;
+      if (bId) {
+        const { data: existingPay } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("booking_id", bId)
+          .maybeSingle();
+
+        const channel =
+          method === "transfer"
+            ? "BCA Transfer"
+            : method === "qris"
+            ? "QRIS Instant"
+            : method === "kartu_kredit"
+            ? "Kartu Kredit"
+            : "Virtual Account";
+
+        if (existingPay) {
+          await supabase
+            .from("payments")
+            .update({
+              payment_method: method,
+              payment_channel: channel,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingPay.id);
+        } else {
+          const bRow = updatedBookings?.[0];
+          const dpAmount = Number(bRow?.dp_amount || 0);
+          const totalAmount = Number(bRow?.total_amount || 0);
+          const amount = dpAmount > 0 ? dpAmount : totalAmount > 0 ? totalAmount : 5000000;
+
+          await supabase.from("payments").insert({
+            booking_id: bId,
+            deal_id: updatedDeal.id,
+            transaction_id: `TRX-${method.toUpperCase()}-${bId}-${Date.now().toString().slice(-4)}`,
+            amount,
+            payment_method: method,
+            status: "pending",
+            paid_at: null,
+            payment_channel: channel,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
     } catch (bookingSyncErr) {
-      console.error("Sync to bookings error:", bookingSyncErr);
+      console.error("Sync to bookings/payments error:", bookingSyncErr);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Metode pembayaran ${method} berhasil disimpan`,
+      message: `Metode pembayaran ${method} berhasil disimpan dan disinkronkan`,
       data: updatedDeal,
     });
   } catch (err: unknown) {

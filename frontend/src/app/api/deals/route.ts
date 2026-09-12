@@ -235,7 +235,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 
-    // Bidirectional sync to bookings table if already linked
+    // Bidirectional sync to bookings and payments table if already linked
     try {
       const bookingUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (payment_status !== undefined) bookingUpdates.payment_status = payment_status;
@@ -247,12 +247,60 @@ export async function PATCH(req: NextRequest) {
       if (venue !== undefined) bookingUpdates.venue = venue;
       if (service_package !== undefined) bookingUpdates.service_package = service_package;
 
-      await supabase
+      const { data: updatedBooking } = await supabase
         .from("bookings")
         .update(bookingUpdates)
-        .eq("deal_id", id);
+        .eq("deal_id", id)
+        .select("id, dp_amount, total_amount, payment_method, payment_status")
+        .maybeSingle();
+
+      if (updatedBooking?.id) {
+        const isSuccess = payment_status === "confirmed" || payment_status === "success";
+        const pMethod = payment_method || updatedBooking.payment_method || "transfer";
+
+        const { data: existingPayment } = await supabase
+          .from("payments")
+          .select("id, paid_at")
+          .eq("booking_id", updatedBooking.id)
+          .maybeSingle();
+
+        if (existingPayment) {
+          const payUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+          if (payment_method !== undefined) payUpdates.payment_method = payment_method;
+          if (payment_status !== undefined) {
+            payUpdates.status = isSuccess ? "settled" : "pending";
+            payUpdates.paid_at = isSuccess ? existingPayment.paid_at || new Date().toISOString() : null;
+          }
+          await supabase.from("payments").update(payUpdates).eq("id", existingPayment.id);
+        } else {
+          const amount =
+            Number(updatedBooking.dp_amount) > 0
+              ? Number(updatedBooking.dp_amount)
+              : Number(updatedBooking.total_amount) > 0
+              ? Number(updatedBooking.total_amount)
+              : 5000000;
+
+          await supabase.from("payments").insert({
+            booking_id: updatedBooking.id,
+            deal_id: id,
+            transaction_id: `TRX-${pMethod.toUpperCase()}-${updatedBooking.id}-${Date.now().toString().slice(-4)}`,
+            amount,
+            payment_method: pMethod,
+            status: isSuccess ? "settled" : "pending",
+            paid_at: isSuccess ? new Date().toISOString() : null,
+            payment_channel:
+              pMethod === "transfer"
+                ? "BCA Transfer"
+                : pMethod === "qris"
+                ? "QRIS Instant"
+                : pMethod.toUpperCase(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
     } catch (bookingErr) {
-      console.error("Sync error to bookings from deals PATCH:", bookingErr);
+      console.error("Sync error to bookings/payments from deals PATCH:", bookingErr);
     }
 
     return NextResponse.json({ success: true, data });
