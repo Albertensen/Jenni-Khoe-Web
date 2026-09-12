@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 
 interface Payment {
   id: number;
@@ -591,46 +590,23 @@ export default function AdminPayments() {
                         )}
                       </td>
 
-                      {/* Aksi (Invoice, SPK, WhatsApp) */}
+                      {/* Aksi (WhatsApp) */}
                       <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Link
-                            href={`/invoice/${p.booking_id || p.deal_id || 1}`}
+                        {waLink ? (
+                          <a
+                            href={waLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 font-medium transition text-[11px]"
-                            title="Buka / Cetak Invoice PDF"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-medium transition text-[11px]"
+                            title="Kirim pesan konfirmasi WA"
                           >
-                            <span>🧾</span>
-                            <span>Invoice</span>
-                          </Link>
-
-                          <Link
-                            href={`/spk/${p.booking_id || p.deal_id || 1}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-luxury-rose-gold bg-luxury-rose-gold/10 hover:bg-luxury-rose-gold/20 font-medium transition text-[11px]"
-                            title="Buka / Cetak SPK PDF"
-                          >
-                            <span>📜</span>
-                            <span>SPK</span>
-                          </Link>
-
-                          {waLink && (
-                            <a
-                              href={waLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-medium transition text-[11px]"
-                              title="Kirim pesan konfirmasi WA"
-                            >
-                              <span>💬</span>
-                              <span>WA</span>
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                            <span>💬</span>
+                            <span>WA</span>
+                          </a>
+                        ) : (
+                          <span className="text-gray-300 text-[10px]">-</span>
+                        )}
+                      </td></tr>
                   );
                 })}
               </tbody>

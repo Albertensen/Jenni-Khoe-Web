@@ -7,6 +7,13 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ## 2026-09-12 11:45 — Otomatisasi Invoice & SPK Format PDF ke WhatsApp / Email dan Menu Admin Invoices
 
+### Changed
+- **Pembersihan Halaman Payments & Penyempurnaan Kirim Manual Invoice/SPK via WA**:
+  - Menghapus tombol Invoice dan SPK dari tabel Payments (`/admin/payments`) agar fokus pada rekonsiliasi transaksi pembayaran.
+  - Memastikan otomatisasi pengiriman Invoice & SPK (PDF) tetap aktif saat pembayaran lunas (dikirim via WhatsApp/Email).
+  - Menyediakan tombol manual terdedikasi `💬 Kirim Invoice & SPK (WA)` pada menu Admin Invoices (`/admin/invoices`) agar admin dapat sekali klik mengirimkan ulang invoice dan SPK berformat PDF ke WhatsApp customer kapan saja diminta.
+  - Menyelaraskan pesan WhatsApp follow-up pada `/admin/bookings` untuk menyertakan tautan PDF Invoice & SPK resmi jika pembayaran telah terverifikasi.
+
 ### Added
 - **Otomatisasi Penerbitan & Pengiriman Dokumen saat Pembayaran Lunas**:
   - Saat pembayaran berstatus `settled` / `confirmed` (baik via verifikasi admin atau checkout gateway), sistem otomatis menerbitkan dokumen resmi `Invoice` dan menghubungkannya dengan `SPK` digital.

@@ -125,7 +125,8 @@ export default function AdminBookings() {
     const isSuccess = b.payment_status === "confirmed" || b.payment_status === "success";
 
     if (isSuccess) {
-      message = `Halo Kak ${b.name}, terima kasih! Pembayaran uang muka (DP) riasan Jenni Khoe MUA untuk tanggal ${dateFormatted} telah kami verifikasi (No. SPK: ${spkNo}). Jadwal riasan Kakak telah resmi terkunci sah. Sampai jumpa di hari bahagia Kakak! ✨`;
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://jenni-khoe-mua.vercel.app";
+      message = `Halo Kak ${b.name}, terima kasih! Pembayaran uang muka (DP) riasan Jenni Khoe MUA untuk tanggal ${dateFormatted} telah kami verifikasi (No. SPK: ${spkNo}). Jadwal riasan Kakak telah resmi terkunci sah.\n\nBerikut tautan dokumen resmi Anda (PDF):\n🧾 Invoice: ${origin}/invoice/${b.id}\n📜 SPK Digital: ${origin}/spk/${b.id}\n\nSampai jumpa di hari bahagia Kakak! ✨`;
     } else if (b.payment_method === "transfer") {
       message = `Halo Kak ${b.name}, terima kasih telah menandatangani SPK digital resmi Jenni Khoe MUA (No: ${spkNo}) untuk tanggal ${dateFormatted}.\n\nKami melihat Kakak telah memilih metode Transfer Bank BCA. Apakah bukti transfer sudah dapat dilampirkan agar jadwal dapat langsung kami validasi dana masuknya? Terima kasih! 🙏`;
     } else if (b.payment_method === "qris") {

@@ -170,8 +170,38 @@ export default function AdminInvoicesPage() {
     }
   };
 
-  // Dispatch / Resend Invoice & SPK
+  // Manual Dispatch / Resend Invoice & SPK via WhatsApp
   const handleDispatch = async (inv: InvoiceItem) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://jenni-khoe-mua.vercel.app";
+    const invoicePdfUrl = `${origin}/invoice/${inv.id}`;
+    const spkPdfUrl = inv.booking_id
+      ? `${origin}/spk/${inv.booking_id}`
+      : inv.deal_id
+      ? `${origin}/spk/${inv.deal_id}`
+      : `${origin}/invoice/${inv.id}`;
+
+    const formattedDate = inv.event_date
+      ? new Date(inv.event_date).toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "Sesuai Kesepakatan";
+
+    const waText = `Halo Kak *${inv.client_name}* ✨\n\nKabar gembira! Pembayaran DP sebesar *Rp ${Number(inv.paid_amount).toLocaleString(
+      "id-ID"
+    )}* telah *KAMI TERIMA & DIVERIFIKASI LUNAS*.\n\n🔒 *Jadwal riasan Anda pada ${formattedDate} telah RESMI TERKUNCI* di kalender eksklusif Jenni Khoe MUA.\n\nBerikut kami lampirkan dokumen resmi Anda yang dapat langsung diunduh dan dicetak dalam format PDF:\n\n🧾 *INVOICE PEMBAYARAN RESMI (PDF)*:\n👉 ${invoicePdfUrl}\n\n📜 *DOKUMEN SPK DIGITAL SAH (PDF)*:\n👉 ${spkPdfUrl}\n\n*Rincian Tagihan:*\n• Paket: ${inv.service_package}\n• Total Biaya: Rp ${Number(inv.total_amount).toLocaleString("id-ID")}\n• DP Terbayar: Rp ${Number(inv.paid_amount).toLocaleString("id-ID")} (Lunas)\n• Sisa Pelunasan (H-7): Rp ${Number(inv.remaining_balance).toLocaleString("id-ID")}\n\nTerima kasih atas kepercayaan Anda mempercayakan hari bahagia Anda bersama Jenni Khoe MUA. Jika ada pertanyaan mengenai persiapan atau koordinasi jadwal, jangan ragu untuk menghubungi kami. 💕`;
+
+    const cleanPhone = (inv.client_phone || "").replace(/[^0-9]/g, "").replace(/^0/, "62");
+
+    if (cleanPhone) {
+      const directWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}`;
+      window.open(directWaLink, "_blank");
+    } else {
+      showToast("Nomor WhatsApp customer tidak ditemukan.");
+    }
+
     try {
       setDispatchingId(inv.id);
       const res = await fetch("/api/invoices/dispatch", {
@@ -181,17 +211,11 @@ export default function AdminInvoicesPage() {
       });
       const json = await res.json();
       if (json.success) {
-        showToast(`✓ Dokumen #${inv.invoice_number} berhasil diproses & dikirim!`);
-        if (json.data?.wa_link) {
-          window.open(json.data.wa_link, "_blank");
-        }
+        showToast(`✓ Invoice #${inv.invoice_number} & SPK siap dikirim ke WhatsApp ${inv.client_name}!`);
         await fetchInvoices();
-      } else {
-        showToast(json.message || "Gagal mengirim notifikasi");
       }
     } catch (err) {
       console.error("Dispatch error:", err);
-      showToast("Terjadi gangguan saat memproses pengiriman");
     } finally {
       setDispatchingId(null);
     }
@@ -395,7 +419,7 @@ export default function AdminInvoicesPage() {
                       <th className="py-3.5 px-4">Biaya & DP</th>
                       <th className="py-3.5 px-4">Status Bayar</th>
                       <th className="py-3.5 px-4">Pengiriman</th>
-                      <th className="py-3.5 px-4 text-right">Aksi</th>
+                      <th className="py-3.5 px-4 text-right">Aksi & Kirim Manual WA</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -501,18 +525,19 @@ export default function AdminInvoicesPage() {
                             </div>
                           </td>
 
-                          {/* Actions */}
+                          {/* Actions: Manual Send Invoice & SPK via WhatsApp */}
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-2">
                               {/* Open Printable Invoice */}
                               <Link
                                 href={`/invoice/${inv.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1 rounded-lg text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition shadow-2xs"
-                                title="Buka / Cetak Invoice PDF"
+                                className="px-3 py-1.5 rounded-xl text-xs font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition shadow-2xs flex items-center gap-1"
+                                title="Lihat Dokumen Invoice PDF"
                               >
-                                📄 Invoice
+                                <span>📄</span>
+                                <span>Invoice</span>
                               </Link>
 
                               {/* Open SPK */}
@@ -521,26 +546,27 @@ export default function AdminInvoicesPage() {
                                   href={`/spk/${inv.booking_id || inv.deal_id || 1}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="px-2.5 py-1 rounded-lg text-xs font-medium text-luxury-rose-gold bg-luxury-rose-gold/10 hover:bg-luxury-rose-gold/20 transition shadow-2xs"
-                                  title="Buka / Cetak SPK PDF"
+                                  className="px-3 py-1.5 rounded-xl text-xs font-medium text-luxury-rose-gold bg-luxury-rose-gold/10 hover:bg-luxury-rose-gold/20 transition shadow-2xs flex items-center gap-1"
+                                  title="Lihat Dokumen SPK PDF"
                                 >
-                                  📜 SPK
+                                  <span>📜</span>
+                                  <span>SPK</span>
                                 </Link>
                               )}
 
-                              {/* Dispatch / Resend */}
+                              {/* Manual Send Invoice & SPK via WhatsApp */}
                               <button
                                 onClick={() => handleDispatch(inv)}
                                 disabled={isDispatching}
-                                className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-2xs disabled:opacity-50 flex items-center gap-1 cursor-pointer"
-                                title="Kirim Ulang Invoice & SPK ke WhatsApp / Email Klien"
+                                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                title="Kirim Ulang Invoice & SPK ke WhatsApp Klien"
                               >
                                 {isDispatching ? (
-                                  <span>...</span>
+                                  <span>Memproses...</span>
                                 ) : (
                                   <>
-                                    <span>🚀</span>
-                                    <span>Kirim</span>
+                                    <span>💬</span>
+                                    <span>Kirim Invoice & SPK (WA)</span>
                                   </>
                                 )}
                               </button>
