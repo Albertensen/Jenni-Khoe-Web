@@ -251,7 +251,7 @@ export async function PATCH(req: NextRequest) {
         .from("bookings")
         .update(bookingUpdates)
         .eq("deal_id", id)
-        .select("id, dp_amount, total_amount, payment_method, payment_status")
+        .select("id, dp_amount, total_amount, payment_method, payment_status, event_date")
         .maybeSingle();
 
       if (updatedBooking?.id) {
@@ -297,6 +297,40 @@ export async function PATCH(req: NextRequest) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
+        }
+
+        // Calendar Date Locking:
+        // Only lock date if DP / payment is confirmed. Unlock date if unpaid.
+        try {
+          if (isSuccess && (deal_date || updatedBooking.event_date)) {
+            const dDate = (deal_date || updatedBooking.event_date).slice(0, 10);
+            const startIso = `${dDate}T05:00:00+07:00`;
+            const endIso = `${dDate}T11:00:00+07:00`;
+            const { data: existingSched } = await supabase
+              .from("schedules")
+              .select("id")
+              .eq("booking_id", updatedBooking.id)
+              .maybeSingle();
+
+            if (!existingSched) {
+              await supabase.from("schedules").insert({
+                booking_id: updatedBooking.id,
+                title: `${name || 'Klien'} (${service_package || 'Bridal Makeup'})`,
+                description: `Deal #${id} | Lokasi: ${venue || '-'}`,
+                location: venue || "Venue Sesuai Kesepakatan",
+                source: "booking",
+                start_datetime: startIso,
+                end_datetime: endIso,
+              });
+            }
+          } else if (payment_status === "belum_bayar" || payment_status === "menunggu_konfirmasi") {
+            await supabase
+              .from("schedules")
+              .delete()
+              .eq("booking_id", updatedBooking.id);
+          }
+        } catch (schedSyncErr) {
+          console.error("Warning: schedule date lock sync error from deals:", schedSyncErr);
         }
       }
     } catch (bookingErr) {

@@ -193,10 +193,10 @@ export async function syncGoogleCalendar() {
   const settings = await getGoogleSettings();
   const calId = settings.calendar_id || "primary";
 
-  // A. Auto-reconcile Bookings into Schedules
+  // A. Auto-reconcile Bookings into Schedules strictly if DP/payment is LUNAS
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, clients(name, phone, email)")
+    .select("*, clients(name, phone, email), payments(id, status)")
     .order("event_date", { ascending: true });
 
   const { data: existingSchedules } = await supabase
@@ -211,16 +211,49 @@ export async function syncGoogleCalendar() {
   let syncedBookingsCount = 0;
 
   for (const b of bookings || []) {
+    const isBookingConfirmed =
+      b.payment_status === "confirmed" ||
+      b.payment_status === "success" ||
+      b.status === "confirmed";
+
+    const isPaymentSettled =
+      Array.isArray(b.payments) &&
+      b.payments.some((p: any) => p.status === "settled");
+
+    const isDpLunas = isBookingConfirmed || isPaymentSettled;
+    let scheduleRow = scheduleMap.get(Number(b.id));
+
+    // If DP is NOT Lunas: Do NOT lock calendar or push to Google Calendar!
+    // And if event was previously created on Google Calendar, remove it to free the date!
+    if (!isDpLunas) {
+      if (scheduleRow) {
+        if (scheduleRow.google_event_id) {
+          try {
+            await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${scheduleRow.google_event_id}`,
+              {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${accessToken}` },
+              }
+            );
+          } catch (delGErr) {
+            console.warn("Could not delete unpaid Google Calendar event:", delGErr);
+          }
+        }
+        await supabase.from("schedules").delete().eq("id", scheduleRow.id);
+      }
+      continue;
+    }
+
+    // If DP IS Lunas: Proceed to lock schedule and sync to Google Calendar
     const clientName = b.clients?.name || "Klien MUA";
     const pkg = b.service_package || "Bridal Makeup";
     const dateStr = b.event_date ? b.event_date.slice(0, 10) : null;
     if (!dateStr) continue;
 
-    // Default makeup timing: 05:00 - 11:00 WIB (+07:00)
     const startIso = `${dateStr}T05:00:00+07:00`;
     const endIso = `${dateStr}T11:00:00+07:00`;
 
-    let scheduleRow = scheduleMap.get(Number(b.id));
     if (!scheduleRow) {
       const { data: newSched } = await supabase
         .from("schedules")

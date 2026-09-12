@@ -5,6 +5,26 @@ Format: [YYYY-MM-DD HH:mm] — deskripsi perubahan.
 
 ---
 
+## 2026-09-12 08:30 — Validasi Penguncian Kalender Berdasarkan Pelunasan DP (Strict DP-Settled Lock)
+
+### Changed
+- **SOP Penguncian Kalender Berbasis Pembayaran**:
+  - Slot tanggal kalender (baik kalender publik maupun sinkronisasi Google Calendar) **hanya dikunci jika customer telah melunasi pembayaran DP** (`payment_status === 'confirmed'` / `status === 'settled'`).
+  - Booking dengan status pembayaran belum lunas (`belum_bayar` atau `menunggu_konfirmasi`) **tidak mengunci tanggal kalender** sehingga slot tanggal tetap terbuka bagi calon pengantin lain.
+  - Data jadwal lama yang belum lunas (Jadwal #3 dan #4) telah dibersihkan dari tabel `schedules`.
+
+### Added
+- **Bidirectional Calendar Date Locking Engine**:
+  - `GET /api/schedules`: Auto-reconcile hanya memasukkan booking dengan DP lunas ke tabel `schedules`, sekaligus membersihkan jadwal jika pembayaran berstatus belum bayar.
+  - Mengembalikan list `pending_bookings` (`is_locked: false`) untuk memantau booking yang masih menunggu pembayaran DP.
+  - `PATCH /api/payments`: Mengunci tanggal otomatis di `schedules` saat status pembayaran diubah menjadi `settled`, dan membuka kembali slot tanggal jika pembayaran pending/gagal/refund.
+  - `PATCH /api/bookings` & `PATCH /api/deals`: Sinkronisasi status penguncian tanggal saat status booking/deal diperbarui.
+  - `src/lib/google-calendar.ts`: Push ke Google Calendar hanya dilakukan untuk booking berstatus DP lunas. Otomatis menghapus event dari Google Calendar jika booking belum lunas.
+  - `CheckAvailabilityForm.tsx`: Mengambil daftar tanggal terkunci secara real-time dari API jadwal berbasis status pelunasan DP.
+  - `admin/schedules/page.tsx`: Bagian khusus "Menunggu Pembayaran DP (Tanggal Belum Terkunci)" dengan kartu rincian klien dan tombol cepat "✓ Verifikasi DP & Kunci".
+
+---
+
 ## 2026-09-12 07:45 — Integrasi Google Calendar & Sinkronisasi Jadwal Rias MUA
 
 ### Added

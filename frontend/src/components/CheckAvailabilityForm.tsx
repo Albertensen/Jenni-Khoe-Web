@@ -52,6 +52,26 @@ export default function CheckAvailabilityForm() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const [lockedDates, setLockedDates] = useState<Set<string>>(new Set());
+
+  // Fetch real-time locked dates from schedules (only DP-lunas or confirmed events lock dates)
+  useEffect(() => {
+    fetch("/api/schedules")
+      .then((r) => (r.ok ? r.json() : Promise.resolve({})))
+      .then((d) => {
+        if (d.locked_dates && Array.isArray(d.locked_dates)) {
+          setLockedDates(new Set(d.locked_dates));
+        } else if (d.data && Array.isArray(d.data)) {
+          const s = new Set<string>();
+          d.data.forEach((item: any) => {
+            if (item.start_datetime) s.add(item.start_datetime.slice(0, 10));
+          });
+          setLockedDates(s);
+        }
+      })
+      .catch((err) => console.warn("Could not load schedules for date checker:", err));
+  }, []);
+
   // Restore client from localStorage
   useEffect(() => {
     try {
@@ -104,14 +124,18 @@ export default function CheckAvailabilityForm() {
       const dStr = `${viewYear}-${pad2(viewMonth + 1)}-${pad2(d)}`;
 
       let status: CalendarDay["status"] = "available";
-      if (isPast) status = "past";
-      else if (booked.includes(d)) status = "booked";
-      else if (hold.includes(d)) status = "hold";
+      if (isPast) {
+        status = "past";
+      } else if (lockedDates.has(dStr) || booked.includes(d)) {
+        status = "booked";
+      } else if (hold.includes(d)) {
+        status = "hold";
+      }
 
       result.push({ date: d, dateStr: dStr, status });
     }
     return result;
-  }, [viewYear, viewMonth]);
+  }, [viewYear, viewMonth, lockedDates]);
 
   const prevMonth = () => {
     if (viewMonth === 0) {

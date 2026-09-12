@@ -16,11 +16,28 @@ interface ScheduleEvent {
   synced_at: string | null;
   status?: string;
   payment_status?: string;
+  is_locked?: boolean;
   client_name?: string | null;
   client_phone?: string | null;
   service_package?: string | null;
   spk_number?: string | null;
   total_amount?: number;
+}
+
+interface PendingBooking {
+  id: number;
+  client_name: string;
+  client_phone: string;
+  service_package: string;
+  event_date: string;
+  venue: string;
+  spk_number: string | null;
+  status: string;
+  payment_status: string;
+  payment_method: string;
+  dp_amount: number;
+  total_amount: number;
+  is_locked: boolean;
 }
 
 interface GoogleIntegrationState {
@@ -43,6 +60,7 @@ const DAYS_ID = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
 export default function AdminSchedules() {
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [pendingBookings, setPendingBookings] = useState<PendingBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncingGoogle, setSyncingGoogle] = useState(false);
   const [googleSettings, setGoogleSettings] = useState<GoogleIntegrationState | null>(null);
@@ -50,6 +68,7 @@ export default function AdminSchedules() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [lockingBookingId, setLockingBookingId] = useState<number | null>(null);
 
   // Calendar navigation state
   const today = new Date();
@@ -109,8 +128,9 @@ export default function AdminSchedules() {
       setLoading(true);
       const res = await fetch("/api/schedules");
       const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setEvents(json.data);
+      if (json.success) {
+        setEvents(json.data || []);
+        setPendingBookings(json.pending_bookings || []);
       }
     } catch (err) {
       console.error("Fetch schedules error:", err);
@@ -124,6 +144,37 @@ export default function AdminSchedules() {
     fetchGoogleStatus();
     fetchSchedules();
   }, []);
+
+  // Quick Action: Confirm DP Lunas and Lock Calendar Date
+  const handleConfirmDpAndLockDate = async (b: PendingBooking) => {
+    try {
+      setLockingBookingId(b.id);
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: b.id,
+          payment_status: "confirmed",
+          status: "confirmed",
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`🔒 Pembayaran DP ${b.client_name} Lunas! Tanggal ${b.event_date} telah TERKUNCI di kalender.`);
+        await fetchSchedules();
+        if (googleSettings?.is_connected) {
+          handleSyncGoogle();
+        }
+      } else {
+        showToast(json.message || "Gagal mengonfirmasi pembayaran DP");
+      }
+    } catch (err) {
+      console.error("Confirm DP error:", err);
+      showToast("Terjadi kesalahan saat mengonfirmasi DP");
+    } finally {
+      setLockingBookingId(null);
+    }
+  };
 
   // Handle Google OAuth Login
   const handleConnectGoogle = () => {
@@ -253,7 +304,7 @@ export default function AdminSchedules() {
       const res = await fetch(`/api/schedules?id=${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
-        showToast("Jadwal berhasil dihapus.");
+        showToast("Jadwal berhasil dihapus & tanggal kalender dibuka kembali.");
         setSelectedEvent(null);
         await fetchSchedules();
       }
@@ -262,7 +313,7 @@ export default function AdminSchedules() {
     }
   };
 
-  // Map events by date (YYYY-MM-DD)
+  // Map locked events by date (YYYY-MM-DD)
   const eventMap = useMemo(() => {
     const map: Record<string, ScheduleEvent[]> = {};
     events.forEach((e) => {
@@ -321,10 +372,10 @@ export default function AdminSchedules() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-serif text-luxury-charcoal font-medium">
-            Jadwal & Google Calendar Sync
+            Jadwal Kalender & Google Sync
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Manajemen agenda riasan pengantin Jenni Khoe MUA & sinkronisasi dua arah dengan Google Calendar.
+            Slot tanggal terkunci eksklusif <strong>hanya setelah DP customer berstatus LUNAS</strong> di sistem payment.
           </p>
         </div>
 
@@ -414,7 +465,7 @@ export default function AdminSchedules() {
                   )}
                 </>
               ) : (
-                "Hubungkan akun Google untuk menyelaraskan jadwal booking klien langsung ke kalender ponsel Anda."
+                "Hubungkan akun Google untuk menyinkronkan jadwal booking pengantin yang telah lunas DP langsung ke Google Calendar Anda."
               )}
             </p>
           </div>
@@ -438,6 +489,85 @@ export default function AdminSchedules() {
           )}
         </div>
       </div>
+
+      {/* Section: Pending Bookings (DP Belum Lunas - Tanggal Belum Terkunci) */}
+      {pendingBookings.length > 0 && (
+        <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⏳</span>
+              <h2 className="text-sm font-semibold text-amber-900">
+                Menunggu Pembayaran DP ({pendingBookings.length} Booking — Tanggal Belum Terkunci)
+              </h2>
+            </div>
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium border border-amber-300">
+              SOP: Slot Belum Dikunci
+            </span>
+          </div>
+
+          <p className="text-xs text-amber-700">
+            Booking di bawah ini belum mengunci tanggal di kalender karena status pembayaran DP belum lunas.
+            Setelah pembayaran DP diverifikasi lunas, tanggal otomatis terkunci dan tersinkron ke Google Calendar.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {pendingBookings.map((b) => {
+              const isLocking = lockingBookingId === b.id;
+
+              return (
+                <div
+                  key={b.id}
+                  className="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-xs space-y-2 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-gray-900">{b.client_name}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">
+                        {b.payment_status === "menunggu_konfirmasi" ? "Menunggu Konfirmasi" : "Belum Bayar"}
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] text-gray-600 mt-1">
+                      📅 Tanggal Acara: <strong>{b.event_date}</strong> (Terbuka)
+                    </div>
+                    <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                      💄 {b.service_package}
+                    </div>
+                    <div className="text-[11px] text-gray-700 font-medium mt-1">
+                      DP: Rp {(b.dp_amount || 5000000).toLocaleString("id-ID")}{" "}
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        ({b.payment_method?.toUpperCase() || "TRANSFER"})
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                    <a
+                      href={`https://wa.me/${b.client_phone.replace(/[^0-9]/g, "").replace(/^0/, "62")}?text=${encodeURIComponent(
+                        `Halo Kak ${b.client_name}, kami dari tim Jenni Khoe MUA mengonfirmasi terkait pembayaran DP riasan untuk tanggal ${b.event_date}. Slot tanggal akan terkunci di kalender kami begitu pembayaran DP terverifikasi.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-gray-600 hover:text-emerald-700 flex items-center gap-1"
+                    >
+                      💬 WA Klien
+                    </a>
+
+                    <button
+                      disabled={isLocking}
+                      onClick={() => handleConfirmDpAndLockDate(b)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs disabled:opacity-50"
+                      title="Tandai pembayaran DP lunas dan kunci tanggal di kalender"
+                    >
+                      {isLocking ? "Mengunci..." : "✓ Verifikasi DP & Kunci"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Main Calendar View & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -542,8 +672,11 @@ export default function AdminSchedules() {
                       {dayNum}
                     </span>
                     {dayEvents.length > 0 && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-luxury-charcoal text-white">
-                        {dayEvents.length}
+                      <span
+                        className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-700 text-white"
+                        title="Tanggal Terkunci (DP Lunas)"
+                      >
+                        🔒 {dayEvents.length}
                       </span>
                     )}
                   </div>
@@ -563,7 +696,7 @@ export default function AdminSchedules() {
                           }}
                           className={`text-[10px] font-medium px-1.5 py-0.5 rounded truncate cursor-pointer transition ${
                             isBooking
-                              ? "bg-amber-100/80 text-amber-900 hover:bg-amber-200"
+                              ? "bg-emerald-100/90 text-emerald-900 hover:bg-emerald-200"
                               : isGoogle
                               ? "bg-blue-100 text-blue-900 hover:bg-blue-200"
                               : "bg-purple-100 text-purple-900 hover:bg-purple-200"
@@ -571,7 +704,7 @@ export default function AdminSchedules() {
                           title={evt.title}
                         >
                           <span className="mr-0.5">
-                            {isBooking ? "💄" : isGoogle ? "📅" : "📌"}
+                            {isBooking ? "🔒" : isGoogle ? "📅" : "📌"}
                           </span>
                           <span>{evt.title}</span>
                         </div>
@@ -598,7 +731,7 @@ export default function AdminSchedules() {
                 Agenda {selectedDateStr ? new Date(selectedDateStr + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "Hari Ini"}
               </h3>
               <p className="text-[11px] text-gray-400 mt-0.5">
-                {selectedDayEvents.length} jadwal tercatat
+                {selectedDayEvents.length} jadwal terkunci
               </p>
             </div>
 
@@ -616,9 +749,9 @@ export default function AdminSchedules() {
           {selectedDayEvents.length === 0 ? (
             <div className="py-12 text-center text-gray-400 text-xs flex-1 flex flex-col items-center justify-center">
               <span className="text-2xl mb-2 opacity-50">✨</span>
-              <p className="text-gray-500 font-medium">Tidak ada jadwal pada tanggal ini.</p>
+              <p className="text-gray-500 font-medium">Slot tanggal ini terbuka (Tersedia).</p>
               <p className="text-[11px] text-gray-400 mt-1">
-                Jadwal booking klien dan Google Calendar otomatis tampil di sini.
+                Jadwal terkunci otomatis saat customer melunasi DP.
               </p>
             </div>
           ) : (
@@ -639,13 +772,13 @@ export default function AdminSchedules() {
                       <span
                         className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
                           isBooking
-                            ? "bg-amber-50 text-amber-800 border-amber-200"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                             : isGoogle
                             ? "bg-blue-50 text-blue-800 border-blue-200"
                             : "bg-purple-50 text-purple-800 border-purple-200"
                         }`}
                       >
-                        {isBooking ? "💄 Booking MUA" : isGoogle ? "📅 Google Event" : "📌 Studio Manual"}
+                        {isBooking ? "🔒 Terkunci (DP Lunas)" : isGoogle ? "📅 Google Event" : "📌 Studio Manual"}
                       </span>
                       <span className="text-[10px] text-gray-500 font-mono">
                         {startTime} - {endTime}
@@ -665,7 +798,7 @@ export default function AdminSchedules() {
 
                     {evt.google_event_link && (
                       <div className="text-[10px] text-blue-600 flex items-center gap-1 pt-1">
-                        <span>✓ Tersinkron ke Google Calendar</span>
+                        <span>✓ Terhubung ke Google Calendar</span>
                       </div>
                     )}
                   </div>
@@ -684,14 +817,14 @@ export default function AdminSchedules() {
               <span
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                   selectedEvent.source === "booking"
-                    ? "bg-amber-50 text-amber-800 border-amber-200"
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                     : selectedEvent.source === "google"
                     ? "bg-blue-50 text-blue-800 border-blue-200"
                     : "bg-purple-50 text-purple-800 border-purple-200"
                 }`}
               >
                 {selectedEvent.source === "booking"
-                  ? "💄 Booking Client Riasan"
+                  ? "🔒 Terkunci di Kalender (DP Lunas)"
                   : selectedEvent.source === "google"
                   ? "📅 Google Calendar External"
                   : "📌 Agenda Studio"}
@@ -769,7 +902,7 @@ export default function AdminSchedules() {
                     onClick={() => handleDeleteEvent(selectedEvent.id)}
                     className="text-xs text-red-500 hover:text-red-700"
                   >
-                    Hapus Agenda
+                    Hapus Agenda (Buka Tanggal)
                   </button>
                 )}
               </div>
@@ -789,7 +922,7 @@ export default function AdminSchedules() {
                 {selectedEvent.client_phone && (
                   <a
                     href={`https://wa.me/${selectedEvent.client_phone.replace(/[^0-9]/g, "").replace(/^0/, "62")}?text=${encodeURIComponent(
-                      `Halo Kak ${selectedEvent.client_name}, kami dari tim Jenni Khoe MUA mengonfirmasi terkait jadwal sesi makeup pada tanggal ${selectedEvent.start_datetime.slice(0, 10)}.`
+                      `Halo Kak ${selectedEvent.client_name}, jadwal sesi makeup Anda untuk tanggal ${selectedEvent.start_datetime.slice(0, 10)} telah terkunci resmi di studio Jenni Khoe MUA.`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1002,7 +1135,7 @@ export default function AdminSchedules() {
                   disabled={savingNewEvent}
                   className="px-4 py-2 rounded-xl text-xs font-medium bg-luxury-charcoal text-white hover:bg-black transition disabled:opacity-50"
                 >
-                  {savingNewEvent ? "Menyimpan..." : "Simpan Agenda"}
+                  {savingNewEvent ? "Menyimpan..." : "Simpan Agenda (Kunci Tanggal)"}
                 </button>
               </div>
             </form>

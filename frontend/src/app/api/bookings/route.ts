@@ -285,6 +285,42 @@ export async function PATCH(req: NextRequest) {
       console.error("Warning: sync payments from booking patch error:", paySyncErr);
     }
 
+    // 4. Calendar Date Locking Logic:
+    // Only lock date if DP / payment is confirmed/success. Unlock if unpaid.
+    try {
+      if (isSuccess && data?.event_date) {
+        const dateStr = data.event_date.slice(0, 10);
+        const startIso = `${dateStr}T05:00:00+07:00`;
+        const endIso = `${dateStr}T11:00:00+07:00`;
+        const pkg = data.service_package || "Bridal Makeup";
+
+        const { data: existingSched } = await supabase
+          .from("schedules")
+          .select("id")
+          .eq("booking_id", id)
+          .maybeSingle();
+
+        if (!existingSched) {
+          await supabase.from("schedules").insert({
+            booking_id: id,
+            title: `Klien (${pkg})`,
+            description: `SPK: ${data.spk_number || '-'} | Lokasi: ${data.venue || '-'}`,
+            location: data.venue || "Venue Sesuai Kesepakatan",
+            source: "booking",
+            start_datetime: startIso,
+            end_datetime: endIso,
+          });
+        }
+      } else if (payment_status === "belum_bayar" || payment_status === "menunggu_konfirmasi") {
+        await supabase
+          .from("schedules")
+          .delete()
+          .eq("booking_id", id);
+      }
+    } catch (schedSyncErr) {
+      console.error("Warning: schedule date lock sync error:", schedSyncErr);
+    }
+
     return NextResponse.json({ success: true, data });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal error";

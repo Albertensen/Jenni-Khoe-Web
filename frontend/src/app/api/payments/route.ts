@@ -245,6 +245,57 @@ export async function PATCH(req: NextRequest) {
         .update(bookingUpdates)
         .eq("id", updatedPayment.booking_id);
 
+      // Calendar Date Locking Logic:
+      // Only lock date if payment is SETTLED. If pending/failed, unlock date.
+      if (status === "settled") {
+        try {
+          const { data: bRow } = await supabase
+            .from("bookings")
+            .select("id, event_date, venue, service_package, spk_number, total_amount, clients(name, phone)")
+            .eq("id", updatedPayment.booking_id)
+            .maybeSingle();
+
+          if (bRow && bRow.event_date) {
+            const dateStr = bRow.event_date.slice(0, 10);
+            const startIso = `${dateStr}T05:00:00+07:00`;
+            const endIso = `${dateStr}T11:00:00+07:00`;
+            const clientObj: any = Array.isArray(bRow.clients) ? bRow.clients[0] : bRow.clients;
+            const cName = clientObj?.name || "Klien";
+            const cPhone = clientObj?.phone || "-";
+            const pkg = bRow.service_package || "Bridal Makeup";
+
+            const { data: existingSched } = await supabase
+              .from("schedules")
+              .select("id")
+              .eq("booking_id", updatedPayment.booking_id)
+              .maybeSingle();
+
+            if (!existingSched) {
+              await supabase.from("schedules").insert({
+                booking_id: updatedPayment.booking_id,
+                title: `${cName} (${pkg})`,
+                description: `SPK: ${bRow.spk_number || '-'} | Klien: ${cName} (${cPhone}) | Lokasi: ${bRow.venue || '-'}`,
+                location: bRow.venue || "Venue Sesuai Kesepakatan",
+                source: "booking",
+                start_datetime: startIso,
+                end_datetime: endIso,
+              });
+            }
+          }
+        } catch (schedLockErr) {
+          console.error("Warning: schedule lock error:", schedLockErr);
+        }
+      } else if (status === "pending" || status === "failed" || status === "refund") {
+        try {
+          await supabase
+            .from("schedules")
+            .delete()
+            .eq("booking_id", updatedPayment.booking_id);
+        } catch (schedUnlockErr) {
+          console.error("Warning: schedule unlock error:", schedUnlockErr);
+        }
+      }
+
       // 3. Bidirectional sync to deal_customers table
       const dealId = updatedPayment.deal_id;
       if (dealId) {
