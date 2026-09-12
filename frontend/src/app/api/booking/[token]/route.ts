@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { isSignatureValid } from "@/lib/signature-validator";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,17 @@ export async function GET(
 
     if (error || !data) {
       return NextResponse.json({ success: false, message: "Data reservasi tidak ditemukan atau tautan kedaluwarsa" }, { status: 404 });
+    }
+
+    // Verify digital signature validity - if signature is blank or invalid, reset signed state
+    const hasValidSignature = isSignatureValid(data.client_signature);
+    if (!hasValidSignature) {
+      data.client_signature = null;
+      data.signed_at = null;
+      data.terms_accepted = false;
+      if (data.status === "spk_signed") {
+        data.status = "form_submitted";
+      }
     }
 
     // Fetch active default T&C

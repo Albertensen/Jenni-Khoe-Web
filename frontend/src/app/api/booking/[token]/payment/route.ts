@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { isSignatureValid } from "@/lib/signature-validator";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function POST(
 
     const supabase = getServiceSupabase();
 
-    // Verify deal exists and is signed with terms accepted
+    // Verify deal exists and is signed with terms accepted AND non-blank signature
     const { data: currentDeal, error: fetchErr } = await supabase
       .from("deal_customers")
       .select("id, status, terms_accepted, client_signature, signed_at")
@@ -33,11 +34,11 @@ export async function POST(
       return NextResponse.json({ success: false, message: "Deal tidak ditemukan" }, { status: 404 });
     }
 
-    if (!currentDeal.terms_accepted || (!currentDeal.client_signature && !currentDeal.signed_at)) {
+    if (!currentDeal.terms_accepted || !isSignatureValid(currentDeal.client_signature)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Anda wajib menyetujui Syarat & Ketentuan serta membubuhkan tanda tangan digital pada SPK terlebih dahulu.",
+          message: "Anda wajib menyetujui Syarat & Ketentuan serta membubuhkan tanda tangan digital pada SPK terlebih dahulu sebelum memilih metode pembayaran.",
         },
         { status: 403 }
       );

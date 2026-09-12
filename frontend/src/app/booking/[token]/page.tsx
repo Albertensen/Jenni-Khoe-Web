@@ -113,10 +113,12 @@ export default function CustomerBookingPage({
             setSelectedMethod("belum_bayar");
           }
 
-          // If already signed, jump directly to step 3 ONLY if both terms_accepted AND client_signature exist
+          // If already signed, jump directly to step 3 ONLY if both terms_accepted AND non-blank signature exist
           const hasValidSignature = Boolean(
             json.data.terms_accepted &&
-            (json.data.client_signature || json.data.signed_at)
+            json.data.client_signature &&
+            json.data.client_signature.trim().length > 200 &&
+            (json.data.status === "spk_signed" || json.data.status === "dp_paid" || json.data.status === "confirmed")
           );
           if (hasValidSignature || json.data.status === "dp_paid" || json.data.status === "confirmed") {
             setStep(3);
@@ -175,10 +177,10 @@ export default function CustomerBookingPage({
     }
   };
 
-  // Strict Guard: SPK is completed only when terms are checked AND signature exists
+  // Strict Guard: SPK is completed only when terms are checked AND valid non-blank signature exists
   const isSpkCompleted = Boolean(
-    (deal?.terms_accepted && (deal?.client_signature || deal?.signed_at)) ||
-    (termsAccepted && signatureData && signatureData.trim().length > 0)
+    (deal?.terms_accepted && deal?.client_signature && deal.client_signature.trim().length > 200 && (deal?.status === "spk_signed" || deal?.status === "dp_paid" || deal?.status === "confirmed")) ||
+    (termsAccepted && signatureData && signatureData.trim().length > 200)
   );
 
   // Automatically prevent viewing step 3 if SPK was not signed
@@ -199,8 +201,8 @@ export default function CustomerBookingPage({
       setSpkError("Anda wajib mencentang persetujuan Syarat & Ketentuan SPK.");
       return;
     }
-    if (!signatureData || signatureData.trim().length === 0) {
-      setSpkError("Silakan goreskan tanda tangan digital Anda pada area kanvas di bawah.");
+    if (!signatureData || signatureData.trim().length < 200) {
+      setSpkError("Silakan goreskan tanda tangan digital Anda pada area kanvas di atas sebelum melanjutkan.");
       return;
     }
 
@@ -725,13 +727,13 @@ export default function CustomerBookingPage({
             <button
               type="button"
               onClick={handleSignSpk}
-              disabled={signing || !hasScrolledToBottom || !termsAccepted || !signatureData}
+              disabled={signing || !hasScrolledToBottom || !termsAccepted || !signatureData || signatureData.trim().length < 200}
               className={`w-full py-3.5 px-6 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-md ${
                 !hasScrolledToBottom
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300 shadow-none"
                   : !termsAccepted
                   ? "bg-amber-100 text-amber-700 cursor-not-allowed border border-amber-300 shadow-none"
-                  : !signatureData
+                  : !signatureData || signatureData.trim().length < 200
                   ? "bg-amber-100 text-amber-700 cursor-not-allowed border border-amber-300 shadow-none"
                   : "bg-luxury-charcoal hover:bg-black text-white cursor-pointer hover:shadow-lg"
               }`}
@@ -742,7 +744,7 @@ export default function CustomerBookingPage({
                 <span>Scroll SPK sampai bawah untuk melanjutkan</span>
               ) : !termsAccepted ? (
                 <span>Wajib centang persetujuan SPK di atas</span>
-              ) : !signatureData ? (
+              ) : !signatureData || signatureData.trim().length < 200 ? (
                 <span>Wajib bubuhkan tanda tangan digital di atas</span>
               ) : (
                 <>

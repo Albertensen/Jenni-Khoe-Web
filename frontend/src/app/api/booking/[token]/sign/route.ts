@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
+import { isSignatureValid } from "@/lib/signature-validator";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,15 @@ export async function POST(
       return NextResponse.json({ success: false, message: "Token tidak valid" }, { status: 400 });
     }
 
-    if (!signature_data) {
-      return NextResponse.json({ success: false, message: "Tanda tangan digital wajib digoreskan" }, { status: 400 });
+    if (!terms_accepted) {
+      return NextResponse.json({ success: false, message: "Anda wajib mencentang persetujuan Syarat & Ketentuan SPK" }, { status: 400 });
     }
 
-    if (!terms_accepted) {
-      return NextResponse.json({ success: false, message: "Anda harus menyetujui Syarat & Ketentuan SPK" }, { status: 400 });
+    if (!isSignatureValid(signature_data)) {
+      return NextResponse.json(
+        { success: false, message: "Tanda tangan digital wajib digoreskan dengan jelas sebelum memproses SPK." },
+        { status: 400 }
+      );
     }
 
     const supabase = getServiceSupabase();
